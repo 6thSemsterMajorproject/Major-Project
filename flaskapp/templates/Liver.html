@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/carousel/">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Document</title>
+    <style>
+        .myfield
+        {
+            border: 1000px;
+        }
+    </style>
+</head>
+<body>
+    {%extends "layout1.html"%}
+        {% block content %}
+
+
+    <h1 style="text-align:center;">Liver Prediction</h1>
+    <h5 style="text-align:center;">Please enter the patient details</h5>
+    <form action="/heartssub" method="post" class="form-inline">
+        <fieldset   style="width: 1000px;">
+            <br>
+            <br>
+            <div class="tabcontent" id="new">
+                <div class="form-group"  style="text-align: center;">
+                    <h5  style="left: 50%;">Enter Your  Age</h5>   
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input type="text" name="age">
+                        
+                    </div>
+                </div>
+                <br>
+                <br>
+        <div class="form-group"  style="text-align: center;">
+            <h5  style="left: 50%;">Enter Your Gender</h5>
+            <br>
+            <div class="center">
+                <input type="checkbox" name="checkbox2">
+                
+                <span>Male</span>
+                <span>Female</span>
+                
+            </div>
+        </div>
+        <br>
+        <br>
+        <div class="form-group"  style="text-align: center;">
+            <h5  style="left: 50%;">Does Your Family Have Liver Diseases </h5>
+            <br>
+            <div class="center">
+                <input type="checkbox" name="checkbox7">
+                
+                <span>Yes</span>
+                <span>No</span>
+                
+            </div>
+        </div>
+        <br>
+        <br>
+        <div class="form-group"  style="text-align: center;">
+            <h5  style="left: 50%;">Do You Drink Alchol</h5>
+            <br>
+            <div class="center">
+                <input type="checkbox" name="checkbox11">
+                
+                <span>Yes</span>
+                <span>No</span>
+                
+            </div>
+        </div>
+        <br>
+        <br>
+        <div class="form-group"  style="text-align: center;">
+            <h5  style="left: 50%;">Do You Smoke</h5>
+            <br>
+            <div class="center">
+                <input type="checkbox" name="checkbox10">
+                
+                <span>Yes</span>
+                <span>No</span>
+                
+            </div>
+        </div>
+        <br>
+        <br>
+        <div class="form-group"  style="text-align: center;">
+            <h5  style="left: 50%;">Do You Have Sleeping disorder</h5>
+            <br>
+            <div class="center">
+                <input type="checkbox" name="checkbox8">
+                
+                <span>Yes</span>
+                <span>No</span>
+                
+            </div>
+        </div>
+        <br>
+        <br>
+        <div class="form-group"  style="text-align: center;">
+            <h5  style="left: 50%;">Do You Have Obesity</h5>   
+            <br>
+            <div class="center">
+                <input type="checkbox" name="checkbox5">
+                
+                <span>Yes</span>
+                <span>no</span>
+                
+            </div>
+        </div>
+        <br>
+        <br>
+        <div class="form-group"  style="text-align: center;">
+            <h5  style="left: 50%;">Do You Have Diabetes</h5>
+            <br>
+            <div class="center">
+                <input type="checkbox" name="checkbox10">
+                
+                <span>Yes</span>
+                <span>No</span>
+                
+            </div>
+        </div>
+        <br>
+        <br>
+    
+      
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="submit" class="btn btn-primary btn-lg">Predict</button>
+            </div>
+        </fieldset>
+    </form>
+
+	</div>
+    {% endblock %}
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>
