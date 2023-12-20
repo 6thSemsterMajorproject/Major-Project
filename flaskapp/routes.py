@@ -1,14 +1,15 @@
-from flask import Flask, redirect,render_template,request,flash,url_for,session,jsonify
-from flaskapp import app,db
+from flask import Flask, redirect,render_template,request,flash,url_for,session
+from flaskapp import app,db,login_manager
 from flaskapp.models import User,diabete,heart
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
+from flask_login import LoginManager, UserMixin, login_user, login_required, current_user,logout_user
+
 import pandas as pd
 import numpy as np
 import joblib
-import time 
 import bcrypt
  # function Section 
 def hash_password(password):
@@ -45,6 +46,10 @@ def get_heart_data():
 
 
 #routes section 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 @app.errorhandler(Exception)
 def handle_error(error):
     exception_name = error.__class__.__name__
@@ -53,15 +58,25 @@ def handle_error(error):
 alert({err}+'Please Try Again')
 </script>
 '''.format(err=error)
+@app.route("/")
+def index():
+    return render_template("index.html")
 @app.route("/Loader")
 def loader():
     return render_template("Loading.html")
 @app.route("/Logout")
+@login_required
 def Logout():
+    logout_user()
     return render_template("index.html")
-@app.route("/")
-def index():
-    return render_template("index.html")
+@app.route("/Account")
+@login_required
+def Account():
+    user=User.query.filter_by(username=current_user.username).first()
+    print(user.username)
+    print(user.email)
+    return  render_template("Loading.html")
+
 
 @app.route("/homepage")
 def homepage():
@@ -70,7 +85,7 @@ def homepage():
 def loginpage():
     return render_template("sign_page.html")
 @app.route("/loginauth" ,methods=['GET','POST'])
-def login():
+def loginauth(): 
     Username=request.form.get("Uname")
     Password=request.form.get("pword")
     print("Hashing is done")
@@ -80,6 +95,7 @@ def login():
     except Exception as e:
         print(e)
     if specific_user_name and specific_user_password:
+        login_user(specific_user_name)
         return render_template("home.html")
     else:
         return "Your Are Not A User"
