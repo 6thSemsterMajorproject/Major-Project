@@ -1,0 +1,19 @@
+{% extends "layout1.html" %}
+{%block content%}
+
+<div align="center" class="card m-3 p-1 border-border radius" style="width: 25rem; border: 1px  black; background:whitesmoke; ">
+	<div class="content-section">
+		<div class="media">
+			<img class="rounded-circle account-img" src="https://static.vecteezy.com/system/resources/thumbnails/010/260/479/small/default-avatar-profile-icon-of-social-media-user-in-clipart-style-vector.jpg" alt="">
+		 <div class="media-body">
+			<h2 class="account-heading">{{current_user.username}}</h2>
+			<p class="text-secondary">Email</p>
+	
+		 </div>
+		</div>
+		
+	</div>
+</div>
+
+
+{%endblock%}
