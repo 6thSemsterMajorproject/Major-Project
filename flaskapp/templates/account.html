@@ -1,46 +1,110 @@
 {% extends "layout1.html" %}
 {%block content%}
+<head>
+    <title>User Health Profile</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
 
-<div align="center" class="card m-3 p-1 border-border radius" style="width: 25rem; border: 1px  black; background:whitesmoke; ">
-	<div class="content-section">
-		<div class="media">
-			<img class="rounded-circle account-img" src="https://static.vecteezy.com/system/resources/thumbnails/010/260/479/small/default-avatar-profile-icon-of-social-media-user-in-clipart-style-vector.jpg" alt="">
-		 <div class="media-body">
-			<h2 class="account-heading">{{username}}</h2>
-			<p class="text-secondary">{{email}}</p>
-	
-		 </div>
-		</div>
-		
-	</div>
-</div>
-  <br>
-  <div  style="display: flex; flex-direction: row;" >
-	<div class="card" style="width: 20rem; height:15rem;">
-		<div class="card-body">
-		  <h5 class="card-title alert alert-warning" role="alert">Diabetes Report</h5>
-		  <p class="card-text">{{result}}</p>
-		  <a href="#" class="btn btn-primary">Full Report</a>
-		</div>
-	  </div>
+        header {
+            background-color: #3498db;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+        }
 
-	  <div class="card" style="width: 20rem; height:15rem;">
-		<div class="card-body">
-		  <h5 class="card-title alert alert-warning" role="alert">Heart Report</h5>
-		  <p class="card-text"></p>
-		  <a href="#" class="btn btn-primary">Full Report</a>
-		</div>
-	  </div>
+        #profile-section {
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
 
-	  <div class="card" style="width: 20rem; height:15rem; margin-left: 10px;">
-		<div class="card-body">
-		  <h5 class="card-title alert alert-warning" role="alert">Kidney Report</h5>
-		  <p class="card-text"></p>
-		  <a href="#" class="btn btn-primary">Full Report</a>
-		</div>
-	  </div>
+        #profile-picture {
+            border-radius: 50%;
+            max-width: 100px;
+            margin: 0 auto 20px;
+            display: block;
+        }
 
-  </div>
+        #health-report {
+            margin-top: 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #3498db;
+            color: #fff;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>User Health Profile</h1>
+    </header>
+
+    <div id="profile-section">
+        <img id="profile-picture" src="https://static.vecteezy.com/system/resources/thumbnails/010/260/479/small/default-avatar-profile-icon-of-social-media-user-in-clipart-style-vector.jpg" alt="User Profile Picture">
+        <h2>{{username}}</h2>
+        <p>Email: {{email}}</p>
+
+        <div id="health-report">
+            <h3>Health Details Report</h3>
+			<div  style="display: flex; flex-direction: row;" >
+				<div class="card" style="width: 20rem; height:15rem;">
+					<div class="card-body">
+					  <h5 class="card-title alert alert-warning" role="alert">Diabetes Report</h5>
+					  <p class="card-text">{{dia_result}}</p>
+					  <a href="#" class="btn btn-primary">Full Report</a>
+					</div>
+				  </div>
+				  <div class="card" style="width: 20rem; height:15rem;">
+					<div class="card-body">
+					  <h5 class="card-title alert alert-warning" role="alert">Heart Report</h5>
+					  <p class="card-text">{{heart}}</p>
+					  <a href="#" class="btn btn-primary">Full Report</a>
+					</div>
+				  </div>
+			
+				  <div class="card" style="width: 20rem; height:15rem; margin-left: 10px;">
+					<div class="card-body">
+					  <h5 class="card-title alert alert-warning" role="alert">Kidney Report</h5>
+					  <p class="card-text"></p>
+					  <a href="#" class="btn btn-primary">Full Report</a>
+					</div>
+				  </div>
+			
+			</div>
+			
+             
+        </div>
+
+        <button onclick="editProfile()">Edit Profile</button>
+    </div>
+
+    <footer>
+        &copy; AIHeathPro 2023
+    </footer>
+
+    <script>
+        function editProfile() {
+            // Implement the functionality to edit the user's profile
+            alert('Implement edit profile functionality here');
+        }
+    </script>
+
+</body>
+
 
 
 
