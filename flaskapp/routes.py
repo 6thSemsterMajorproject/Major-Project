@@ -80,13 +80,14 @@ def Account():
         print(user.username)
         print(user.email)
         print(user.diabete_history)
+        print(user.heart_result)
     except Exception as e:
         print(e)
 
 
     
         
-    return  render_template("account.html",username=user.username,email=user.email,result=user.diabete_history)
+    return  render_template("account.html",username=user.username,email=user.email,dia_result=user.diabete_history,heart=user.heart_result)
 
 @app.route('/AboutUs')
 def about():
@@ -259,10 +260,19 @@ def Heartsub():
 
 
         if prediction[0][1] >= 0.5:
+            user=User.query.filter_by(username=current_user.username).first()
+            user.heart_result="Yes"
+            print(user.heart_result)
+            db.session.commit()
+
             return '''
                 <script> alert("You Have High Risk Of Heart ")
                 </script>'''
         else:
+            user=User.query.filter_by(username=current_user.username).first()
+            user.heart_result="No"
+            print(user.heart_result)
+            db.session.commit()
             return '''
                 <script> alert("You Have low Risk Of Heart")
                 </script>'''    
