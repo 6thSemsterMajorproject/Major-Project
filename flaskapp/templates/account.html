@@ -6,14 +6,42 @@
 		<div class="media">
 			<img class="rounded-circle account-img" src="https://static.vecteezy.com/system/resources/thumbnails/010/260/479/small/default-avatar-profile-icon-of-social-media-user-in-clipart-style-vector.jpg" alt="">
 		 <div class="media-body">
-			<h2 class="account-heading">{{current_user.username}}</h2>
-			<p class="text-secondary">Email</p>
+			<h2 class="account-heading">{{username}}</h2>
+			<p class="text-secondary">{{email}}</p>
 	
 		 </div>
 		</div>
 		
 	</div>
 </div>
+  <br>
+  <div  style="display: flex; flex-direction: row;" >
+	<div class="card" style="width: 20rem; height:15rem;">
+		<div class="card-body">
+		  <h5 class="card-title alert alert-warning" role="alert">Diabetes Report</h5>
+		  <p class="card-text">{{result}}</p>
+		  <a href="#" class="btn btn-primary">Full Report</a>
+		</div>
+	  </div>
+
+	  <div class="card" style="width: 20rem; height:15rem;">
+		<div class="card-body">
+		  <h5 class="card-title alert alert-warning" role="alert">Heart Report</h5>
+		  <p class="card-text"></p>
+		  <a href="#" class="btn btn-primary">Full Report</a>
+		</div>
+	  </div>
+
+	  <div class="card" style="width: 20rem; height:15rem; margin-left: 10px;">
+		<div class="card-body">
+		  <h5 class="card-title alert alert-warning" role="alert">Kidney Report</h5>
+		  <p class="card-text"></p>
+		  <a href="#" class="btn btn-primary">Full Report</a>
+		</div>
+	  </div>
+
+  </div>
+
 
 
 {%endblock%}
