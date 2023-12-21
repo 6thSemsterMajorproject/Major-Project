@@ -8,6 +8,11 @@ class User(db.Model,UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
     diabete_history=db.Column(db.String(500))
+    heart_result=db.Column(db.String(200))
+    kidney=db.Column(db.String(200))
+    liver=db.Column(db.String(200))
+    other=db.Column(db.String(200))
+
     
 
 
