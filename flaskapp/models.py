@@ -1,10 +1,16 @@
-from flaskapp import db
+from flaskapp import db,login_manager
 from flask_login import UserMixin
+
 class User(db.Model,UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
+    #image_file=db.Column(db.String(50),nullable=False,default='default.jpg')
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
+    diabete_history=db.Column(db.String(500))
+    
+
+
 class diabete(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     processedmeat=db.Column(db.Integer)
@@ -22,6 +28,9 @@ class diabete(db.Model):
     alcoholic=db.Column(db.Integer)
     sleep_problem=db.Column(db.Integer)
     result=db.Column(db.Integer)
+    
+
+
 
 class heart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
