@@ -72,12 +72,25 @@ def Logout():
 @app.route("/Account")
 @login_required
 def Account():
-    user=User.query.filter_by(username=current_user.username).first()
-    print(user.username)
-    print(user.email)
-    return  render_template("Loading.html")
+    print('hello')
+    try:
+
+   
+        user=User.query.filter_by(username=current_user.username).first()
+        print(user.username)
+        print(user.email)
+        print(user.diabete_history)
+    except Exception as e:
+        print(e)
 
 
+    
+        
+    return  render_template("account.html",username=user.username,email=user.email,result=user.diabete_history)
+
+@app.route('/AboutUs')
+def about():
+    return render_template('about.html')
 @app.route("/homepage")
 def homepage():
     return render_template("home.html")
@@ -175,10 +188,22 @@ def dibetessub():
     print(prediction[0][1])
 
     if prediction[0][1] >= 0.5:
+        user=User.query.filter_by(username=current_user.username).first()
+        user.diabete_history="Yes"
+        print(user.diabete_history)
+        db.session.commit()
+
+
         return '''
 <script> alert("You Have High Risk Of Diabets")
 </script>'''
+
+
     else:
+        user=User.query.filter_by(username=current_user.username).first()
+        user.diabete_history="No"
+        print(user.diabete_history)
+        db.session.commit()
         return '''
 <script> alert("You Have low Risk Of Diabets")
 </script>'''
