@@ -1,16 +1,18 @@
 from flask import Flask, redirect,render_template,request,flash,url_for,session
 from flaskapp import app,db,login_manager
-from flaskapp.models import User,diabete,heart
+from flaskapp.models import User,diabete,heart,Kidney
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user,logout_user
-
 import pandas as pd
 import numpy as np
 import joblib
 import bcrypt
+import sqlite3
+from datetime import datetime
  # function Section 
 def hash_password(password):
     # Generate a salt and hash the password
@@ -36,13 +38,11 @@ def get_diabete_data():
     except Exception as e:
         print(e)
     return data_list
-def get_heart_data():
-    try:
-        data=heart.query.all()
-    except Exception as e:
-        print(e)
-    return data
 
+def current_data():
+    cur_date=datetime.now()
+    for_date=cur_date.strftime("%y/%m/%d")
+    return for_date
 
 
 #routes section 
@@ -72,26 +72,12 @@ def Logout():
 @app.route("/Account")
 @login_required
 def Account():
-    print('hello')
-    try:
+    user=User.query.filter_by(username=current_user.username).first()
+    return  render_template("account.html",username=user.username,email=user.email,dia_result=user.diabete_history,heart=user. heart_result,Kidney=user.kidney)
+@app.route("/AboutUs")
+def AboutUs():
+    return render_template("about.html")
 
-   
-        user=User.query.filter_by(username=current_user.username).first()
-        print(user.username)
-        print(user.email)
-        print(user.diabete_history)
-        print(user.heart_result)
-    except Exception as e:
-        print(e)
-
-
-    
-        
-    return  render_template("account.html",username=user.username,email=user.email,dia_result=user.diabete_history,heart=user.heart_result)
-
-@app.route('/AboutUs')
-def about():
-    return render_template('about.html')
 @app.route("/homepage")
 def homepage():
     return render_template("home.html")
@@ -102,7 +88,6 @@ def loginpage():
 def loginauth(): 
     Username=request.form.get("Uname")
     Password=request.form.get("pword")
-    print("Hashing is done")
     try:
         specific_user_name = User.query.filter_by(username=Username).first()
         specific_user_password=check_password(Password,specific_user_name.password)
@@ -119,14 +104,10 @@ def signupauth():
     Email=request.form.get("email")
     Password=request.form.get("password")
     Password=hash_password(Password)
-    print("Hasing is done ")
     user=User(username=Username,email=Email,password=Password)
     try:
         db.session.add(user)
-        print("The Data Has Been Added")
         db.session.commit()
-        print("The Data Has Been Added")
-        
     except  Exception  as e:
         print(e)
     finally:
@@ -157,9 +138,7 @@ def dibetessub():
     diabetes_details.append((request.form.get("checkbox12")))
     diabetes_details=List_replacer(diabetes_details)
 
-    print("The Data is getting ")
     data = get_diabete_data()
-    print(data)
        
     if data:
     # Extracting features and target values from data
@@ -168,8 +147,7 @@ def dibetessub():
                 item.excessive_stress, item.smoking, item.alcoholic, item.sleep_problem] for item in data]
         
         y = [item.result for item in data]
-    print(X)
-    print(y)
+
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  # The Testing is 20% and training is 80% 
     
     # Create and train a Random Forest classifier model
@@ -185,25 +163,15 @@ def dibetessub():
     prediction = loaded_model.predict_proba(input_data)
     y_pred = loaded_model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
-    print(accuracy*100)
-    print(prediction[0][1])
-
-    if prediction[0][1] >= 0.5:
-        user=User.query.filter_by(username=current_user.username).first()
-        user.diabete_history="Yes"
-        print(user.diabete_history)
+    user=User.query.filter_by(username=current_user.username).first()
+    if prediction[0][1] >= 0.5:    
+        user.diabete_history="Yes;"+str(current_data())+";"+str(prediction[0][1]*100)+":"
         db.session.commit()
-
-
         return '''
 <script> alert("You Have High Risk Of Diabets")
 </script>'''
-
-
     else:
-        user=User.query.filter_by(username=current_user.username).first()
-        user.diabete_history="No"
-        print(user.diabete_history)
+        user.diabete_history="No;"+str(current_data())+";"+str(prediction[0][1]*100)+":"
         db.session.commit()
         return '''
 <script> alert("You Have low Risk Of Diabets")
@@ -216,12 +184,10 @@ def Heart():
 @app.route("/heartsub",methods=["GET","POST"])
 def Heartsub():
     try:    
-        print("In The  Function ")
         Heart_details=[]
         Heart_details.append(int(request.form.get("age")))
         Heart_details.append(request.form.get("checkbox2"))
         Heart_details.append(request.form.get("checkbox7"))
-        Heart_details.append(request.form.get("checkbox8"))
         Heart_details.append(request.form.get("checkbox5"))
         Heart_details.append(request.form.get("checkbox10"))
         Heart_details.append(request.form.get("checkbox9"))
@@ -229,49 +195,34 @@ def Heartsub():
         Heart_details.append(int(request.form.get("Weight")))
         Heart_details.append(request.form.get("checkbox12"))
         Heart_details.append(request.form.get("checkbox3"))
-        Heart_details=List_replacer(Heart_details)   
-        print("getting data ")
-        data=get_heart_data()
-        print("got The data")
-        if data:
-        # Extracting features and target values from data
-            X = [[item.Age, item.Gender, item.family_history, item.blood_pressure, item.HyperTension, 
-                    item.smoking, item.stress, item.alcoholic, item.BodyWeight, item.Excessive_intakeof_salt, 
-                    item.Excessive_intakeof_coffee] for item in data]
-            
-            y = [item.result for item in data]
-
-        print(X)
-        print(y)
-
+        Heart_details=List_replacer(Heart_details)    
+    
+        query="select Age,Gender,family_history,HyperTension,smoking,stress,alcoholic,Bodyweight,Excessive_intakeof_salt,Excessive_intakeof_coffee,result from heart"
+        conn = sqlite3.connect("C:\\AIhealthpro\\instance\\AIhealthpro.db")
+        data = pd.read_sql_query(query, conn)
+        # data=db.engine.execute(query)
+        print(data)
+        X = data.drop('result',axis=1)  # Features
+        y = data['result']
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  # The Testing is 20% and training is 80% 
-        
         model = LogisticRegression(random_state=42)
         model.fit(X_train, y_train)
-
-            # Save the trained model
         joblib.dump(model, 'Heart_risk_model.pkl')
-
-            
         loaded_model = joblib.load('Heart_risk_model.pkl')
         input_details=[Heart_details]
         prediction = loaded_model.predict_proba(input_details)
-        print(prediction[0][1])
-
-
+        user=User.query.filter_by(username=current_user.username).first()
         if prediction[0][1] >= 0.5:
-            user=User.query.filter_by(username=current_user.username).first()
-            user.heart_result="Yes"
-            print(user.heart_result)
-            db.session.commit()
-
+            try:
+                user.heart_result="Yes;"+str(current_data())+";"+str(prediction[0][1]*1000)+":"
+                db.session.commit()
+            except Exception as e:
+                print("this is Exception",e)
             return '''
                 <script> alert("You Have High Risk Of Heart ")
                 </script>'''
         else:
-            user=User.query.filter_by(username=current_user.username).first()
-            user.heart_result="No"
-            print(user.heart_result)
+            user.heart_result="No;"+str(current_data())+";"+str(prediction[0][1]*1000)+":"
             db.session.commit()
             return '''
                 <script> alert("You Have low Risk Of Heart")
@@ -281,9 +232,84 @@ def Heartsub():
 @app.route("/Kidney")
 def Kidney():
     return render_template("Kidney.html")
-@app.route("/kidneysub")
+@app.route("/kidneysub",methods=["GET","POST"])
 def Kidneysub():
-    return "This is Kidney Sub"
+    try:
+        kidney_details=[]
+        kidney_details.append(request.form.get("age"))
+        kidney_details.append(request.form.get("checkbox1"))
+        kidney_details.append(request.form.get("checkbox3"))
+        kidney_details.append(request.form.get("checkbox4"))
+        kidney_details.append(request.form.get("checkbox2"))
+        kidney_details.append(request.form.get("checkbox5"))
+        kidney_details.append(request.form.get("checkbox6"))
+        kidney_details.append(request.form.get("checkbox7"))
+        kidney_details.append(request.form.get("checkbox8"))
+        kidney_details.append(request.form.get("checkbox9"))
+        conn=sqlite3.connect("C:\\AIhealthpro\\instance\\AIhealthpro.db")
+        cursor = conn.cursor()
+        cursor.execute('SELECT Age,family_history,physical_excerise,obesity,Hypertension,HeartDieases,smoking,painkiller,alcoholic,diabetes,result FROM kidney')
+        data=cursor.fetchall()
+        conn.close()
+        data=pd.DataFrame(data)
+        X=data.iloc[:,:-1] 
+        y=data.iloc[:,-1] 
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        kidney_details=List_replacer(kidney_details)
+        model = RandomForestRegressor(random_state=42)
+        model.fit(X_train,y_train)
+        joblib.dump(model,"Kidney_risk_model.pkl")
+        loaded_model=joblib.load("Kidney_risk_model.pkl")
+        try:
+            input_data=[kidney_details]
+            prediction=loaded_model.predict(input_data)
+        except Exception as e:
+            print(e)
+        user=User.query.filter_by(username=current_user.username).first()
+
+        if prediction[0]>=0.5:
+            user.kidney="Yes;"+str(current_data())+";"+str(prediction*100)+":"
+            db.session.commit()
+            return "You Have Kidney Diseases"
+        else:
+            user.kidney="No;"+str(current_data())+";"+str(prediction*100)+":"
+            db.session.commit()
+            return render_template("Loading.html")
+    except Exception as e:
+        print(e)
 @app.route("/Liver")
 def Liver():
     return render_template("Liver.html")
+@app.route("/Liversub",methods=["GET","POST"])
+def Liversub():
+    Liver_detials=[]
+    Liver_detials.append(request.form.get('age'))
+    Liver_detials.append(request.form.get("checkbox1"))
+    Liver_detials.append(request.form.get("checkbox3"))
+    Liver_detials.append(request.form.get("checkbox4"))
+    Liver_detials.append(request.form.get("checkbox2"))
+    Liver_detials.append(request.form.get("checkbox5"))
+    Liver_detials.append(request.form.get("checkbox6"))
+    Liver_detials.append(request.form.get("checkbox7"))
+    Liver_detials.append(request.form.get("checkbox8"))
+    Liver_detials=List_replacer(Liver_detials)
+    data=pd.read_csv("C:\\AIhealthpro\\flaskapp\\my_csv_file\\liver.csv")
+    X=data.drop('result',axis=1)
+    y=data['result']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  # The Testing is 20% and training is 80% 
+    model = RandomForestClassifier(n_estimators=100,random_state=42)
+    model.fit(X_train, y_train)
+    joblib.dump(model, 'Liver_risk_model.pkl')
+        # Load the model
+    loaded_model = joblib.load('Liver_risk_model.pkl')
+    prediction=loaded_model.predict_proba([Liver_detials])
+    user=User.query.filter_by(username=current_user.username).first()
+    if prediction[0][1]>=0.5:
+        user.liver="Yes;"+str(current_data())+";"+str(prediction[0][1]*1000)+":"
+        db.session.commit()
+        return"You Have Liver dieases"
+    else:
+        user.liver="Yes;"+str(current_data())+";"+str(prediction[0][1]*1000)+":"
+        db.session.commit()
+        return"Don't worry"
+    return "This is Liver Submition page"
