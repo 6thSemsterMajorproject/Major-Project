@@ -1,0 +1,144 @@
+{% extends "layout1.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diabetes Results Dashboard</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        header {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+
+        section {
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #3498db;
+        }
+
+        #overview {
+            background-color: #ecf0f1;
+        }
+
+        #alerts {
+            background-color: #e74c3c;
+            color: #fff;
+        }
+
+        #goals, #resources, #log, #reminders, #support {
+            margin-top: 20px;
+        }
+
+        ol {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        footer {
+            margin-top: 20px;
+            background-color: #3498db;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Diabetes Results Dashboard</h1>
+</header>
+
+<section id="overview">
+    <h2>Dashboard Overview</h2>
+    <!-- Display key metrics and visualizations here -->
+</section>
+
+<section id="alerts">
+    <h2>Report</h2>
+    <div>
+        {% if results == "Yes" %}
+        <strong>High Chances for Diabetes ..Kindly Follow Guidance</strong>
+        {% else %}
+        <strong>Low Chances for Diabetes..</strong>
+        {% endif %}
+    </div>
+</section>
+
+
+
+<section id="timeline">
+    <h2>Timeline and History</h2>
+    <!-- Display a timeline of blood sugar readings and events -->
+</section>
+
+
+
+<section id="timeline">
+ <h2>Nutrition Guidance </h2>
+     <div>
+       <strong>Do's</strong>
+       <ul >
+        <li><b>Balanced Meals:</b> Include carbs, protein, and healthy fats.</li>
+        <li><b>Portion Control: </b>Eat smaller, frequent meals.</li>
+        <li><b>Complex Carbs:</b>Choose whole grains, veggies, and legumes.</li>
+        <li><b>Fiber-Rich Foods: </b>Opt for fruits, veggies, and whole grains.</li>
+        <li><b>Stay Hydrated:</b>Drink plenty of water.</li>
+       </ul>
+     </div>
+     <div>
+        <strong>Don'ts</strong>
+        <ul>
+            <li><b>Avoid Sugary Drinks: </b>Opt for water or sugar-free options.</li>
+            <li><b>Limit Processed Foods: </b>Choose whole, fresh foods</li>
+            <li><b>Watch Fats: </b>Limit saturated and trans fats.</li>
+            <li><b>No Skipping Meals: </b>Stick to a regular eating schedule.</li>
+            <li><b>Control Alcohol: </b>Drink in moderation, with food.</li>
+        </ul>
+     </div>
+
+</section>
+
+<section id="timeline">
+    <div class="alert alert-danger">
+        <h2>Medication Reminders</h2>
+             <strong>Consult the Nearest Doctor ..This is Just a Sample Report</strong>
+
+    </div>
+    
+
+    
+</section>
+
+
+
+<!-- ... (continue with the rest of your sections) -->
+
+<footer>
+    <p>&copy; 2023 Diabetes Results Website</p>
+</footer>
+
+</body>
+</html>
+{% endblock %}
