@@ -1,10 +1,10 @@
 from flask import Flask, redirect,render_template,request,flash,url_for,session
 from flaskapp import app,db,login_manager
-from flaskapp.models import User,diabete,heart,Kidney,lungs
+from flaskapp.models import User,diabete,lungs
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression,LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user,logout_user
@@ -87,7 +87,7 @@ def Logout():
 @login_required
 def Account():
     user=User.query.filter_by(username=current_user.username).first()
-    return  render_template("account.html",username=user.username,email=user.email,dia_result=user.diabete_history,heart=user. heart_result,Kidney=user.kidney)
+    return  render_template("account.html",username=user.username,email=user.email,dia_result=user.diabete_history,heart=user. heart_result,Kidney=user.kidney,Liver=user.liver,Lungs=user.lungs)
 @app.route("/AboutUs")
 def AboutUs():
     return render_template("about.html")
@@ -225,7 +225,7 @@ def Heartsub():
                     '''
         else:
             query="select Age,Gender,family_history,HyperTension,smoking,stress,alcoholic,Bodyweight,Excessive_intakeof_salt,Excessive_intakeof_coffee,result from heart"
-            conn = sqlite3.connect("C:\\AIhealthpro\\instance\\AIhealthpro.db")
+            conn = sqlite3.connect("C:\\Major_project\\AIhealthpro\\AIhealthpro\\instance\\AIhealthpro.db")
             data = pd.read_sql_query(query, conn)
             # data=db.engine.execute(query)
             print(data)
@@ -239,6 +239,7 @@ def Heartsub():
             input_details=[Heart_details]
             prediction = loaded_model.predict_proba(input_details)
             user=User.query.filter_by(username=current_user.username).first()
+            print(prediction)
             if prediction[0][1] >= 0.5:
                 try:
                     user.heart_result="Yes;"+str(current_data())+";"+str(prediction[0][1]*1000)+":"
@@ -258,50 +259,56 @@ def Heartsub():
         return str(e)
 @app.route("/Kidney")
 def Kidney():
-    return render_template("Kidney.html")
+    return render_template("kidney.html")
 @app.route("/kidneysub",methods=["GET","POST"])
 def Kidneysub():
     try:
         kidney_details=[]
         kidney_details.append(request.form.get("age"))
         kidney_details.append(request.form.get("checkbox1"))
+        kidney_details.append(request.form.get("checkbox2"))
         kidney_details.append(request.form.get("checkbox3"))
         kidney_details.append(request.form.get("checkbox4"))
-        kidney_details.append(request.form.get("checkbox2"))
         kidney_details.append(request.form.get("checkbox5"))
         kidney_details.append(request.form.get("checkbox6"))
         kidney_details.append(request.form.get("checkbox7"))
         kidney_details.append(request.form.get("checkbox8"))
         kidney_details.append(request.form.get("checkbox9"))
         kidney_details=List_replacer(kidney_details)
-        conn=sqlite3.connect("C:\\AIhealthpro\\instance\\AIhealthpro.db")
+        print('values listed ')
+        conn=sqlite3.connect("C:\\Major_project\\AIhealthpro\\AIhealthpro\\instance\\AIhealthpro.db")
         cursor = conn.cursor()
-        cursor.execute('SELECT Age,family_history,physical_excerise,obesity,Hypertension,HeartDieases,smoking,painkiller,alcoholic,diabetes,result FROM kidney')
+        print('connected')
+        cursor.execute('SELECT Age,FamilyHistory,PhysicalExcerise,obesity,Hypertension,HeartDieases,Smoking,excessive_painkillers,Alcohol,diabetes,result FROM kidney')
+        print('Fetching..')
         data=cursor.fetchall()
         conn.close()
         data=pd.DataFrame(data)
         X=data.iloc[:,:-1] 
         y=data.iloc[:,-1] 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        model = RandomForestRegressor(random_state=42)
+        model = RandomForestRegressor()
         model.fit(X_train,y_train)
         joblib.dump(model,"Kidney_risk_model.pkl")
         loaded_model=joblib.load("Kidney_risk_model.pkl")
         try:
+            print('kidney try')
             input_data=[kidney_details]
             prediction=loaded_model.predict(input_data)
+            print(prediction)
         except Exception as e:
+            print('kidney except')
             print(e)
         user=User.query.filter_by(username=current_user.username).first()
 
-        if prediction[0]>=0.5:
+        if prediction>=0.5:
             user.kidney="Yes;"+str(current_data())+";"+str(prediction*100)+":"
             db.session.commit()
             return "You Have Kidney Diseases"
         else:
             user.kidney="No;"+str(current_data())+";"+str(prediction*100)+":"
             db.session.commit()
-            return render_template("Loading.html")
+            return "You have No Kidney Disease"
     except Exception as e:
         print(e)
 @app.route("/Liver")
@@ -320,32 +327,36 @@ def Liversub():
     Liver_detials.append(request.form.get("checkbox7"))
     Liver_detials.append(request.form.get("checkbox8"))
     Liver_detials=List_replacer(Liver_detials)
-    data=pd.read_csv("C:\\AIhealthpro\\flaskapp\\my_csv_file\\liver.csv")
+    data=pd.read_csv("C:\\Major_project\\AIhealthpro\\AIhealthpro\\flaskapp\\my_csv_file\\liver.csv")
     X=data.drop('result',axis=1)
     y=data['result']
     try:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  # The Testing is 20% and training is 80% 
         model = DecisionTreeClassifier(random_state=42)
         model.fit(X_train, y_train)
+        print(model)
         joblib.dump(model, 'Liver_risk_model.pkl')
+        print('loaded pkl')
         
         # Load the model
     
         loaded_model = joblib.load('Liver_risk_model.pkl')
         prediction=loaded_model.predict([Liver_detials])
+        print(prediction[0])
     except Exception as e:
         print("This is Exception",e)
     user=User.query.filter_by(username=current_user.username).first()
-    print(prediction)
-    if prediction==1:
-        user.liver="Yes;"+str(current_data())+";"+str(prediction[0][1]*100)+":"
+    print(prediction[0])
+    if prediction[0]==1:
+        print("liver:yes")
+        user.liver="Yes;"+str(current_data())+";"+str(prediction[0]*100)+":"
         db.session.commit()
         return"You Have Liver dieases"
     else:
-        user.liver="no;"+str(current_data())+";"+str(prediction[0][1]*100)+":"
+        print("liver:NO")
+        user.liver="no;"+str(current_data())+";"+str(prediction[0]*100)+":"
         db.session.commit()
         return"Don't worry"
-    return "This is Liver Submition page"
 @app.route('/Lungs')
 def Lungs():
     return render_template('lungs.html')
@@ -364,6 +375,7 @@ def lungssub():
             Lungs_details=List_replacer(Lungs_details)
             print("getting data ")
             data=get_lungs_data()
+            print(data)
             print("got The data")
             if data:
                 df=pd.read_csv('C:\\Major_project\\AIhealthpro\\AIhealthpro\\flaskapp\\my_csv_file\\lungs.csv')
@@ -374,7 +386,7 @@ def lungssub():
                 print(y)
                 X_train,X_test,y_train,y_test=train_test_split(x,y,test_size=0.2,random_state=42)
 
-                model=RandomForestRegressor()
+                model=LinearRegression()
                 print(model)
                 model.fit(X_train,y_train)
                 print('after training')
@@ -388,11 +400,16 @@ def lungssub():
                 print('prediction from loaded ')
                 print(prediction)
                 user=User.query.filter_by(username=current_user.username).first()
-                if prediction >= 0.5:
-                    user.Asthama="Yes;"+str(current_data())+";"+str(prediction*100)+":"
+                print(user.lungs)
+                if prediction >= 0.5:   
+                    user.lungs="Yes;"+str(current_data())+";"+str(prediction*100)+":"
+                    db.session.commit()
+                    print(user.lungs)
                     return '<script> alert("You Have High Risk Of Asthma ") </script>'
                 else:
-                    user.Asthama="No;"+str(current_data())+";"+str(prediction*100)+":"
+                    user.lungs="No;"+str(current_data())+";"+str(prediction*100)+":"
+                    db.session.commit()
+                    print(user.lungs)
                     return '<script> alert("You Have Low Risk Of Asthma ") </script>'
         except Exception as e:
             print(e)
