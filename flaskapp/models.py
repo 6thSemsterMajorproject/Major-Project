@@ -11,7 +11,7 @@ class User(db.Model,UserMixin):
     heart_result=db.Column(db.String(200))
     kidney=db.Column(db.String(200))
     liver=db.Column(db.String(200))
-    other=db.Column(db.String(200))
+    lungs=db.Column(db.String(200))
 
     
 
@@ -51,3 +51,44 @@ class heart(db.Model):
     Excessive_intakeof_salt=db.Column(db.Integer)
     Excessive_intakeof_coffee=db.Column(db.Integer)
     result=db.Column(db.Integer)
+
+class kidney(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        Age=db.Column(db.Integer)
+        FamilyHistory=db.Column(db.Integer)
+        PhysicalExcerise=db.Column(db.Integer)
+        obesity=db.Column(db.Integer)
+        Hypertension=db.Column(db.Integer)
+        HeartDieases=db.Column(db.Integer)
+        Smoking=db.Column(db.Integer)
+        excessive_painkillers=db.Column(db.Integer)
+        Alcohol=db.Column(db.Integer)
+        diabetes=db.Column(db.Integer)
+        result=db.Column(db.Integer)
+
+class liver(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        Gender=db.Column(db.Integer)
+        Family_History=db.Column(db.Integer)
+        Alcohol=db.Column(db.Integer)
+        smoking=db.Column(db.Integer)
+        Sleep_disorder=db.Column(db.Integer)
+        obesity=db.Column(db.Integer)
+        excessive_medication=db.Column(db.Integer)
+        excessive_painkillers=db.Column(db.Integer)
+        diabetes=db.Column(db.Integer)
+        result=db.Column(db.Integer)
+
+class lungs(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        Age=db.Column(db.Integer)
+        family_history=db.Column(db.Integer)
+        smoking=db.Column(db.Integer)
+        allergies=db.Column(db.Integer)
+        weight=db.Column(db.Integer)
+        Exercise=db.Column(db.Integer)
+        Location=db.Column(db.Integer)
+        Result=db.Column(db.Integer)
+
+
+    
