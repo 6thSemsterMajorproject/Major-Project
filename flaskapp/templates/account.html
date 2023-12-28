@@ -26,15 +26,27 @@
         }
 
         #profile-picture {
-            border-radius: 50%;
-            max-width: 100px;
-            margin: 0 auto 20px;
-            display: block;
+            margin: 20px;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
         }
 
         #health-report {
             margin-top: 20px;
         }
+        .health-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        padding: 15px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 40%;
+        text-align: center;
+        margin: 0 auto;
+    }
 
         footer {
             text-align: center;
@@ -54,42 +66,74 @@
     </header>
 
     <div id="profile-section">
-        <img id="profile-picture" src="https://static.vecteezy.com/system/resources/thumbnails/010/260/479/small/default-avatar-profile-icon-of-social-media-user-in-clipart-style-vector.jpg" alt="User Profile Picture">
+        <div style="size: 20rem;">
+            <img  id="profile-picture" src="https://static.vecteezy.com/system/resources/thumbnails/010/260/479/small/default-avatar-profile-icon-of-social-media-user-in-clipart-style-vector.jpg" alt="User Profile Picture">
+        </div>
+        
         <h2>{{username}}</h2>
         <p>Email: {{email}}</p>
 
         <div id="health-report">
-            <h3>Health Details Report</h3>
-			<div  style="display: flex; flex-direction: row;" >
-				<div class="card" style="width: 20rem; height:15rem;">
-					<div class="card-body">
-					  <h5 class="card-title alert alert-warning" role="alert">Diabetes Report</h5>
-					  <p class="card-text">{{dia_result}}</p>
-					  <a href="#" class="btn btn-primary">Full Report</a>
-					</div>
-				  </div>
-				  <div class="card" style="width: 20rem; height:15rem;">
-					<div class="card-body">
-					  <h5 class="card-title alert alert-warning" role="alert">Heart Report</h5>
-					  <p class="card-text">{{heart}}</p>
-					  <a href="#" class="btn btn-primary">Full Report</a>
-					</div>
-				  </div>
-			
-				  <div class="card" style="width: 20rem; height:15rem; margin-left: 10px;">
-					<div class="card-body">
-					  <h5 class="card-title alert alert-warning" role="alert">Kidney Report</h5>
-					  <p class="card-text"></p>
-					  <a href="#" class="btn btn-primary">Full Report</a>
-					</div>
-				  </div>
-			
-			</div>
-			
-             
-        </div>
+          <h3>Health Details Report</h3>
+          <div class="row" style="gap: 2px;">
+      
+              <!-- Diabetes Report -->
+              <div class="card health-card {{dia_result|lower}}">
+                  <div class="card-body">
+                      <i class="fas fa-heartbeat"></i>
+                      <h5 class="card-title alert alert-warning" role="alert">Diabetes Report</h5>
+                      <p class="card-text">{{dia_result}}</p>
+                      <a href="#" class="btn btn-primary full-report-btn">Full Report</a>
+                  </div>
+              </div>
+      
+              <!-- Heart Report -->
+              <div class="card health-card {{dia_result|lower}}">
+                  <div class="card-body">
+                      <i class="fas fa-heartbeat"></i>
+                      <h5 class="card-title alert alert-warning" role="alert">Heart Report</h5>
+                      <p class="card-text">{{heart}}</p>
+                      <a href="#" class="btn btn-primary full-report-btn">Full Report</a>
+                  </div>
+              </div>
+      
+              <!-- Kidney Report -->
+              <div class="card health-card {{dia_result|lower}}">
+                  <div class="card-body">
+                      <i class="fas fa-heartbeat"></i>
+                      <h5 class="card-title alert alert-warning" role="alert">Kidney Report</h5>
+                      <p class="card-text">{{Kidney}}</p>
+                      <a href="#" class="btn btn-primary full-report-btn">Full Report</a>
+                  </div>
+              </div>
+      
+              <!-- Liver Report -->
+              <div class="card health-card {{dia_result|lower}}">
+                  <div class="card-body">
+                      <i class="fas fa-heartbeat"></i>
+                      <h5 class="card-title alert alert-warning" role="alert">Liver Report</h5>
+                      <p class="card-text">{{Liver}}</p>
+                      <a href="#" class="btn btn-primary full-report-btn">Full Report</a>
+                  </div>
+              </div>
+      
+              <!-- Lungs Report -->
+              <div class="card health-card {{dia_result|lower}}">
+                  <div class="card-body">
+                      <i class="fas fa-heartbeat"></i>
+                      <h5 class="card-title alert alert-warning" role="alert">Lungs Report</h5>
+                      <p class="card-text">{{Lungs}}</p>
+                      <a href="#" class="btn btn-primary full-report-btn">Full Report</a>
+                  </div>
+              </div>
+      
+              <!-- Repeat the above structure for other health reports -->
+      
+          </div>
+      </div>
+      
 
-        <button onclick="editProfile()">Edit Profile</button>
+      <button onclick="editProfile()">Edit Profile</button>
     </div>
 
     <footer>
