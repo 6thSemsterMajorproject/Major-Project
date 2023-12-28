@@ -87,7 +87,7 @@ def Logout():
 @login_required
 def Account():
     user=User.query.filter_by(username=current_user.username).first()
-    return  render_template("account.html",username=user.username,email=user.email,dia_result=user.diabete_history,heart=user. heart_result,Kidney=user.kidney,Liver=user.liver,Lungs=user.lungs)
+    return  render_template("account.html",username=user.username,email=user.email,dia_result=user.diabete_history,heart=user.heart_result,Kidney=user.kidney,Liver=user.liver,Lungs=user.lungs)
 @app.route("/AboutUs")
 def AboutUs():
     return render_template("about.html")
@@ -168,10 +168,10 @@ def dibetessub():
                 
                 y = [item.result for item in data]
 
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  # The Testing is 20% and training is 80% 
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)  # The Testing is 20% and training is 80% 
             
             # Create and train a Random Forest classifier model
-            model = RandomForestClassifier(n_estimators=100,random_state=42)
+            model = RandomForestClassifier(n_estimators=100, max_depth=None, random_state=42)
             model.fit(X_train, y_train)
 
                 # Save the trained model
@@ -184,18 +184,16 @@ def dibetessub():
             y_pred = loaded_model.predict(X_test)
             accuracy = accuracy_score(y_test, y_pred)
             user=User.query.filter_by(username=current_user.username).first()
-            if prediction[0][1] >= 0.5:    
-                user.diabete_history="Yes;"+str(current_data())+";"+str(prediction[0][1]*100)+":"
+            print(prediction[0][1])
+            print(accuracy)
+            if prediction[0][1] >= 0.5  :    
+                user.diabete_history="Diabetes:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0][1]*100)+":"
                 db.session.commit()
-                return '''
-        <script> alert("You Have High Risk Of Diabets")
-        </script>'''
+                return render_template('result.html',result=user.diabete_history)
             else:
-                user.diabete_history="No;"+str(current_data())+";"+str(prediction[0][1]*100)+":"
+                user.diabete_history="Diabetes:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0][1]*100)+":"
                 db.session.commit()
-                return '''
-        <script> alert("You Have low Risk Of Diabets")
-        </script>'''
+                return render_template('result.html',result=user.diabete_history)
     except Exception as e:
         print(e)
     # Heart Module 
@@ -239,22 +237,18 @@ def Heartsub():
             input_details=[Heart_details]
             prediction = loaded_model.predict_proba(input_details)
             user=User.query.filter_by(username=current_user.username).first()
-            print(prediction)
+            print(prediction[0][1])
             if prediction[0][1] >= 0.5:
                 try:
-                    user.heart_result="Yes;"+str(current_data())+";"+str(prediction[0][1]*1000)+":"
+                    user.heart_result="Heart_Diesease:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0][1]*100)+":"
                     db.session.commit()
                 except Exception as e:
                     print("this is Exception",e)
-                return '''
-                    <script> alert("You Have High Risk Of Heart ")
-                    </script>'''
+                return render_template('result.html',result=user.heart_result)
             else:
-                user.heart_result="No;"+str(current_data())+";"+str(prediction[0][1]*1000)+":"
+                user.heart_result="Heart_Diesease:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0][1]*100)+":"
                 db.session.commit()
-                return '''
-                    <script> alert("You Have low Risk Of Heart")
-                    </script>'''    
+                return render_template('result.html',result=user.heart_result)   
     except Exception as e:
         return str(e)
 @app.route("/Kidney")
@@ -286,7 +280,7 @@ def Kidneysub():
         data=pd.DataFrame(data)
         X=data.iloc[:,:-1] 
         y=data.iloc[:,-1] 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
         model = RandomForestRegressor()
         model.fit(X_train,y_train)
         joblib.dump(model,"Kidney_risk_model.pkl")
@@ -302,13 +296,13 @@ def Kidneysub():
         user=User.query.filter_by(username=current_user.username).first()
 
         if prediction>=0.5:
-            user.kidney="Yes;"+str(current_data())+";"+str(prediction*100)+":"
+            user.kidney="Kidney_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
             db.session.commit()
-            return "You Have Kidney Diseases"
+            return render_template('result.html',result=user.kidney)
         else:
-            user.kidney="No;"+str(current_data())+";"+str(prediction*100)+":"
+            user.kidney="Kidney_Disease:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
             db.session.commit()
-            return "You have No Kidney Disease"
+            return render_template('result.html',result=user.kidney)
     except Exception as e:
         print(e)
 @app.route("/Liver")
@@ -331,8 +325,8 @@ def Liversub():
     X=data.drop('result',axis=1)
     y=data['result']
     try:
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  # The Testing is 20% and training is 80% 
-        model = DecisionTreeClassifier(random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)  # The Testing is 20% and training is 80% 
+        model = DecisionTreeClassifier()
         model.fit(X_train, y_train)
         print(model)
         joblib.dump(model, 'Liver_risk_model.pkl')
@@ -349,14 +343,14 @@ def Liversub():
     print(prediction[0])
     if prediction[0]==1:
         print("liver:yes")
-        user.liver="Yes;"+str(current_data())+";"+str(prediction[0]*100)+":"
+        user.liver="Liver_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0]*100)+":"
         db.session.commit()
-        return"You Have Liver dieases"
+        return render_template('result.html',result=user.liver)
     else:
         print("liver:NO")
-        user.liver="no;"+str(current_data())+";"+str(prediction[0]*100)+":"
+        user.liver="Liver_Disease:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0]*100)+":"
         db.session.commit()
-        return"Don't worry"
+        return render_template('result.html',result=user.liver)
 @app.route('/Lungs')
 def Lungs():
     return render_template('lungs.html')
@@ -402,14 +396,14 @@ def lungssub():
                 user=User.query.filter_by(username=current_user.username).first()
                 print(user.lungs)
                 if prediction >= 0.5:   
-                    user.lungs="Yes;"+str(current_data())+";"+str(prediction*100)+":"
+                    user.lungs="Asthama:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
                     db.session.commit()
                     print(user.lungs)
-                    return '<script> alert("You Have High Risk Of Asthma ") </script>'
+                    return render_template('result.html',result=user.lungs)
                 else:
-                    user.lungs="No;"+str(current_data())+";"+str(prediction*100)+":"
+                    user.lungs="Asthama:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
                     db.session.commit()
                     print(user.lungs)
-                    return '<script> alert("You Have Low Risk Of Asthma ") </script>'
+                    return render_template('result.html',result=user.lungs)
         except Exception as e:
             print(e)
