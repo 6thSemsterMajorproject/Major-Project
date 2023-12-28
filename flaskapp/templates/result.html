@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Prediction Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://wallpaperaccess.com/full/136920.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        header {
+            background-color: #094785;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        header img {
+            width: 40px;
+            height: 40px;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        header span {
+            color: #faf6f6;
+            font-size: 24px;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+
+        section {
+            max-width: 500px;
+            padding: 20px;
+            background-image: url('https://img.freepik.com/free-photo/white-smoke-wallpaper-abstract-desktop-background_53876-128262.jpg?size=626&ext=jpg&ga=GA1.1.396082918.1703257876&semt=ais');
+            background-position: center;
+            border-radius: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1, h2, h3 {
+            color: #094785;
+        }
+
+        #alerts {
+            background-color: lightgray;
+            color: #fff;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        .result1 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fc1e06;
+        }
+        .result2 {
+            font-size: 18px;
+            font-weight: bold;
+            color: green;
+        }
+    
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #094785;
+            color: #faf6f6;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtIvhxOY_I1t7oaislzfEkBe18GE6T_2K-WA&usqp=CAU" alt="logo">
+        <span>AIHealthPro</span>
+    </header>
+
+    <section>
+        <h1>Predicted Results</h1>
+
+        <h2>Summary</h2>
+        <p>Your health check results are in. Please review the details below:</p>
+
+        <div id="alerts">
+            <h3>Report</h3>
+            {% if "Diabetes" in result %}
+               {% if "Diabetes:Yes" in result %}
+                <strong class="result1">High Chances for Diabetes. Kindly Follow Guidance.</strong>
+            {% else %}
+                <strong class="result2">Low Chances for Diabetes.</strong>
+                {%endif%}
+            {% endif %}
+
+            {% if "Heart_Diesease" in result %}            
+            {% if "Heart_Diesease:Yes" in result %}
+                <strong class="result1">High Chances for Heart diseases. Kindly Follow Guidance.</strong>
+            {% else %}
+                <strong class="result2">Low Chances for Heart diseases.</strong>
+            {% endif %}
+            {% endif %}
+
+            {% if "Kidney_Disease" in result %}            
+            {% if "Kidney_Disease:Yes" in result %}
+                <strong class="result1">High Chances for Kidney diseases. Kindly Follow Guidance.</strong>
+            {% else %}
+                <strong class="result2">Low Chances for Kidney diseases.</strong>
+            {% endif %}
+            {% endif %}
+
+            {% if "Liver_Disease" in result %}            
+            {% if "Liver_Disease:Yes" in result %}
+                <strong class="result1">High Chances for Liver diseases. Kindly Follow Guidance.</strong>
+            {% else %}
+                <strong class="result2">Low Chances for Liver diseases.</strong>
+            {% endif %}
+            {% endif %}
+
+            {% if "Asthama" in result %}            
+            {% if "Asthama:Yes" in result %}
+                <strong class="result1">High Chances for Asthama. Kindly Follow Guidance.</strong>
+            {% else %}
+                <strong class="result2">Low Chances for Asthama.</strong>
+            {% endif %}
+            {% endif %}
+
+
+
+        </div>
+
+        <h3>Details:</h3>
+        <p>We have to add details of the patient's disease.</p>
+        <p><b>Note:</b> These are not actual results and may require consultation with a doctor.</p>
+        <!-- Add more details as needed -->
+
+    </section>
+
+    <footer>
+        <p>&copy; 2023 AIHealthPro</p>
+    </footer>
+</body>
+</html>
