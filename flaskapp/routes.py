@@ -1,8 +1,7 @@
 from flask import Flask, redirect,render_template,request,flash,url_for,session
 from flaskapp import app,db,login_manager
-from flaskapp.models import User,diabete,lungs
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import RandomForestRegressor
+from flaskapp.models import User,diabete,heart,Kidney,lungs
+from sklearn.ensemble import RandomForestClassifier,RandomForestRegressor
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression,LinearRegression
 from sklearn.model_selection import train_test_split
@@ -44,12 +43,6 @@ def current_data():
     cur_date=datetime.now()
     for_date=cur_date.strftime("%y/%m/%d")
     return for_date
-def get_lungs_data():
-    try:
-        data=lungs.query.all()
-    except Exception as e:
-        print(e)
-    return data
 def List_validator(my_list):
     flag=0
     for i in my_list:
@@ -67,11 +60,7 @@ def load_user(user_id):
 @app.errorhandler(Exception)
 def handle_error(error):
     exception_name = error.__class__.__name__
-    return'''
-<script>
-alert({err}+'Please Try Again')
-</script>
-'''.format(err=error)
+    return "This is Error handler"+str(error)
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -87,7 +76,7 @@ def Logout():
 @login_required
 def Account():
     user=User.query.filter_by(username=current_user.username).first()
-    return  render_template("account.html",username=user.username,email=user.email,dia_result=user.diabete_history,heart=user.heart_result,Kidney=user.kidney,Liver=user.liver,Lungs=user.lungs)
+    return  render_template("account.html",username=user.username,email=user.email,dia_result=user.diabete_history,heart=user.heart_result,Kidney=user.kidney,Liver=user.liver,Lungs=user.Asthama)
 @app.route("/AboutUs")
 def AboutUs():
     return render_template("about.html")
@@ -152,14 +141,12 @@ def dibetessub():
         diabetes_details.append((request.form.get("checkbox11")))
         diabetes_details.append((request.form.get("checkbox12")))
         diabetes_details=List_replacer(diabetes_details)
-        flag=List_validator(diabetes_details)
-        print(flag)
+        flag=int(List_validator(diabetes_details) )
         if flag==1:
-            return '''
-    <script>alert('You Have Given Invalid data');'</script>'''
+            return "You Have Given an Illegal Value Please Retry"
+            
         else:
             data = get_diabete_data()
-            
             if data:
             # Extracting features and target values from data
                 X = [[item.processedmeat, item.fired_food, item.soft_drink, item.white_rice, item.physical_excerise, 
@@ -168,15 +155,12 @@ def dibetessub():
                 
                 y = [item.result for item in data]
 
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)  # The Testing is 20% and training is 80% 
-            
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  # The Testing is 20% and training is 80% 
             # Create and train a Random Forest classifier model
-            model = RandomForestClassifier(n_estimators=100, max_depth=None, random_state=42)
+            model = RandomForestClassifier(random_state=42)
             model.fit(X_train, y_train)
-
                 # Save the trained model
             joblib.dump(model, 'diabetes_risk_model.pkl')
-
                 # Load the model
             loaded_model = joblib.load('diabetes_risk_model.pkl')
             input_data = [diabetes_details]
@@ -184,16 +168,14 @@ def dibetessub():
             y_pred = loaded_model.predict(X_test)
             accuracy = accuracy_score(y_test, y_pred)
             user=User.query.filter_by(username=current_user.username).first()
-            print(prediction[0][1])
-            print(accuracy)
-            if prediction[0][1] >= 0.5  :    
+            if prediction[0][1] >= 0.5:    
                 user.diabete_history="Diabetes:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0][1]*100)+":"
                 db.session.commit()
-                return render_template('result.html',result=user.diabete_history)
+                return  render_template("result.html",result=user.diabete_history)
             else:
                 user.diabete_history="Diabetes:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0][1]*100)+":"
                 db.session.commit()
-                return render_template('result.html',result=user.diabete_history)
+                return  render_template("result.html",result=user.diabete_history)
     except Exception as e:
         print(e)
     # Heart Module 
@@ -216,17 +198,16 @@ def Heartsub():
         Heart_details.append(request.form.get("checkbox12"))
         Heart_details.append(request.form.get("checkbox3"))
         Heart_details=List_replacer(Heart_details)    
-        flag=List_validator(Heart_details)
+        flag=int(List_validator(Heart_details))
         if flag==1:
             return '''
             <script>alert('You Have Entered  invalid data');</script>
                     '''
         else:
             query="select Age,Gender,family_history,HyperTension,smoking,stress,alcoholic,Bodyweight,Excessive_intakeof_salt,Excessive_intakeof_coffee,result from heart"
-            conn = sqlite3.connect("C:\\Major_project\\AIhealthpro\\AIhealthpro\\instance\\AIhealthpro.db")
+            conn = sqlite3.connect("C:\\AIhealthpro\\instance\\AIhealthpro.db")
             data = pd.read_sql_query(query, conn)
             # data=db.engine.execute(query)
-            print(data)
             X = data.drop('result',axis=1)  # Features
             y = data['result']
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  # The Testing is 20% and training is 80% 
@@ -235,83 +216,82 @@ def Heartsub():
             joblib.dump(model, 'Heart_risk_model.pkl')
             loaded_model = joblib.load('Heart_risk_model.pkl')
             input_details=[Heart_details]
-            prediction = loaded_model.predict_proba(input_details)
+            prediction = loaded_model.predict(input_details)
             user=User.query.filter_by(username=current_user.username).first()
-            print(prediction[0][1])
-            if prediction[0][1] >= 0.5:
+            if prediction==1:
                 try:
-                    user.heart_result="Heart_Diesease:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0][1]*100)+":"
+                    user.heart_result="Heart_Diesease:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
                     db.session.commit()
                 except Exception as e:
                     print("this is Exception",e)
-                return render_template('result.html',result=user.heart_result)
+                return  render_template("result.html",result=user.diabete_history)
             else:
-                user.heart_result="Heart_Diesease:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0][1]*100)+":"
+                user.heart_result="Heart_Diesease:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
                 db.session.commit()
-                return render_template('result.html',result=user.heart_result)   
+                return  render_template("result.html",result=user.diabete_history)
     except Exception as e:
         return str(e)
 @app.route("/Kidney")
 def Kidney():
-    return render_template("kidney.html")
+    return render_template("Kidney.html")
 @app.route("/kidneysub",methods=["GET","POST"])
 def Kidneysub():
     try:
         kidney_details=[]
-        kidney_details.append(request.form.get("age"))
+        kidney_details.append(int(request.form.get("age")))
         kidney_details.append(request.form.get("checkbox1"))
-        kidney_details.append(request.form.get("checkbox2"))
         kidney_details.append(request.form.get("checkbox3"))
         kidney_details.append(request.form.get("checkbox4"))
+        kidney_details.append(request.form.get("checkbox2"))
         kidney_details.append(request.form.get("checkbox5"))
         kidney_details.append(request.form.get("checkbox6"))
         kidney_details.append(request.form.get("checkbox7"))
         kidney_details.append(request.form.get("checkbox8"))
         kidney_details.append(request.form.get("checkbox9"))
-        kidney_details=List_replacer(kidney_details)
-        print('values listed ')
-        conn=sqlite3.connect("C:\\Major_project\\AIhealthpro\\AIhealthpro\\instance\\AIhealthpro.db")
-        cursor = conn.cursor()
-        print('connected')
-        cursor.execute('SELECT Age,FamilyHistory,PhysicalExcerise,obesity,Hypertension,HeartDieases,Smoking,excessive_painkillers,Alcohol,diabetes,result FROM kidney')
-        print('Fetching..')
-        data=cursor.fetchall()
-        conn.close()
-        data=pd.DataFrame(data)
-        X=data.iloc[:,:-1] 
-        y=data.iloc[:,-1] 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-        model = RandomForestRegressor()
-        model.fit(X_train,y_train)
-        joblib.dump(model,"Kidney_risk_model.pkl")
-        loaded_model=joblib.load("Kidney_risk_model.pkl")
-        try:
-            print('kidney try')
-            input_data=[kidney_details]
-            prediction=loaded_model.predict(input_data)
-            print(prediction)
-        except Exception as e:
-            print('kidney except')
-            print(e)
-        user=User.query.filter_by(username=current_user.username).first()
-
-        if prediction>=0.5:
-            user.kidney="Kidney_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
-            db.session.commit()
-            return render_template('result.html',result=user.kidney)
+        kidney_details=List_replacer(kidney_details)        
+        print(kidney_details)
+        flag=int(List_validator(kidney_details))
+        if flag==1:
+            return "You Have entered illegal argument"
         else:
-            user.kidney="Kidney_Disease:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
-            db.session.commit()
-            return render_template('result.html',result=user.kidney)
+            conn=sqlite3.connect("C:\\AIhealthpro\\instance\\AIhealthpro.db")
+            cursor = conn.cursor()
+            cursor.execute('SELECT Age,family_history,physical_excerise,obesity,Hypertension,HeartDieases,smoking,painkiller,alcoholic,diabetes,result FROM kidney')
+            data=cursor.fetchall()
+            conn.close()
+            data=pd.DataFrame(data)
+            X=data.iloc[:,:-1] 
+            y=data.iloc[:,-1] 
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            model = RandomForestRegressor(random_state=42)
+            model.fit(X_train,y_train)
+            joblib.dump(model,"Kidney_risk_model.pkl")
+            loaded_model=joblib.load("Kidney_risk_model.pkl")
+            try:
+                input_data=[kidney_details]
+                prediction=loaded_model.predict(input_data)
+            except Exception as e:
+                print(e)
+            user=User.query.filter_by(username=current_user.username).first()
+
+            if prediction>=0.5:
+                user.kidney="Kidney_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
+                db.session.commit()
+                return  render_template("result.html",result=user.diabete_history)
+            else:
+                user.kidney="Kidney_Disease:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
+                db.session.commit()
+                return  render_template("result.html",result=user.diabete_history)
     except Exception as e:
         print(e)
+        return str(e)
 @app.route("/Liver")
 def Liver():
     return render_template("Liver.html")
 @app.route("/Liversub",methods=["GET","POST"])
 def Liversub():
     Liver_detials=[]
-    Liver_detials.append(request.form.get('age'))
+    Liver_detials.append(int(request.form.get('age')))
     Liver_detials.append(request.form.get("checkbox1"))
     Liver_detials.append(request.form.get("checkbox3"))
     Liver_detials.append(request.form.get("checkbox4"))
@@ -321,43 +301,42 @@ def Liversub():
     Liver_detials.append(request.form.get("checkbox7"))
     Liver_detials.append(request.form.get("checkbox8"))
     Liver_detials=List_replacer(Liver_detials)
-    data=pd.read_csv("C:\\Major_project\\AIhealthpro\\AIhealthpro\\flaskapp\\my_csv_file\\liver.csv")
-    X=data.drop('result',axis=1)
-    y=data['result']
-    try:
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)  # The Testing is 20% and training is 80% 
-        model = DecisionTreeClassifier()
-        model.fit(X_train, y_train)
-        print(model)
-        joblib.dump(model, 'Liver_risk_model.pkl')
-        print('loaded pkl')
-        
-        # Load the model
-    
-        loaded_model = joblib.load('Liver_risk_model.pkl')
-        prediction=loaded_model.predict([Liver_detials])
-        print(prediction[0])
-    except Exception as e:
-        print("This is Exception",e)
-    user=User.query.filter_by(username=current_user.username).first()
-    print(prediction[0])
-    if prediction[0]==1:
-        print("liver:yes")
-        user.liver="Liver_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0]*100)+":"
-        db.session.commit()
-        return render_template('result.html',result=user.liver)
+    print(Liver_detials)
+    flag=int(List_validator(Liver_detials))
+    print(flag)
+    if flag ==1:
+        return "You Have entered illegal argument"
     else:
-        print("liver:NO")
-        user.liver="Liver_Disease:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0]*100)+":"
-        db.session.commit()
-        return render_template('result.html',result=user.liver)
+        data=pd.read_csv("C:\\AIhealthpro\\flaskapp\\my_csv_file\\liver.csv")
+        X=data.drop('result',axis=1)
+        y=data['result']
+        try:
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  # The Testing is 20% and training is 80% 
+            model = DecisionTreeClassifier(random_state=42)
+            model.fit(X_train, y_train)
+            y_pred=model.predict(X_test)
+            accuracy=accuracy_score(y_test,y_pred)
+            joblib.dump(model, 'Liver_risk_model.pkl')
+            loaded_model = joblib.load('Liver_risk_model.pkl')
+            prediction=loaded_model.predict([Liver_detials])
+        except Exception as e:
+            print("This is Exception",e)
+        user=User.query.filter_by(username=current_user.username).first()
+        predict=int(prediction)
+        if predict==0:
+            user.liver="Liver_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(predict*100)+":"
+            db.session.commit()
+            return  render_template("result.html",result=user.diabete_history)
+        else:
+            user.liver="Liver_Disease:NO;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(predict*100)+":"
+            db.session.commit()
+            return  render_template("result.html",result=user.diabete_history)
 @app.route('/Lungs')
 def Lungs():
     return render_template('lungs.html')
 @app.route('/lungssub',methods=['GET','POST'])
 def lungssub():
         try:
-            print("In The  Function ")
             Lungs_details=[]
             Lungs_details.append(int(request.form.get("age")))
             Lungs_details.append(request.form.get("checkbox1"))
@@ -367,43 +346,25 @@ def lungssub():
             Lungs_details.append(request.form.get("checkbox4"))
             Lungs_details.append(request.form.get("checkbox5"))
             Lungs_details=List_replacer(Lungs_details)
-            print("getting data ")
-            data=get_lungs_data()
-            print(data)
-            print("got The data")
-            if data:
-                df=pd.read_csv('C:\\Major_project\\AIhealthpro\\AIhealthpro\\flaskapp\\my_csv_file\\lungs.csv')
-                print(df.head())
-                x=df[['Age','family_history','smoking','allergies','weight','Exercise','Location']]
-                y=df['Result']
-                print(x)
-                print(y)
-                X_train,X_test,y_train,y_test=train_test_split(x,y,test_size=0.2,random_state=42)
-
-                model=LinearRegression()
-                print(model)
-                model.fit(X_train,y_train)
-                print('after training')
-                joblib.dump(model, 'Lungs_risk_model.pkl')
-                print('Dumped')
-                loaded_model = joblib.load('Lungs_risk_model.pkl')
-                print('loaded')
-                input_details=[Lungs_details]
-                print('inputed from list')
-                prediction = loaded_model.predict(input_details)
-                print('prediction from loaded ')
-                print(prediction)
-                user=User.query.filter_by(username=current_user.username).first()
-                print(user.lungs)
-                if prediction >= 0.5:   
-                    user.lungs="Asthama:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
-                    db.session.commit()
-                    print(user.lungs)
-                    return render_template('result.html',result=user.lungs)
-                else:
-                    user.lungs="Asthama:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
-                    db.session.commit()
-                    print(user.lungs)
-                    return render_template('result.html',result=user.lungs)
+            flag=int(List_validator(Lungs_details))
+            if flag:
+                return "You have entered illegal argument"
+            data=pd.read_csv("C:\\AIhealthpro\\flaskapp\\my_csv_file\\lungs.csv")
+            X=data[['Age','family_history','smoking','allergies','weight','Exercise','Location']]
+            y=data['Result']
+            X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=42)
+            model=LinearRegression()
+            model.fit(X_train,y_train)
+            joblib.dump(model, 'Lungs_risk_model.pkl')
+            loaded_model = joblib.load('Lungs_risk_model.pkl')
+            input_details=[Lungs_details]
+            prediction = loaded_model.predict(input_details)
+            user=User.query.filter_by(username=current_user.username).first()
+            if prediction >= 0.5:
+                user.lungs="Asthama:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
+                return  render_template("result.html",result=user.diabete_history)
+            else:
+                user.lungs="Asthama:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
+                return  render_template("result.html",result=user.diabete_history)
         except Exception as e:
             print(e)
