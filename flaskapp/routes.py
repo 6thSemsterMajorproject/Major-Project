@@ -49,7 +49,37 @@ def List_validator(my_list):
         if i<0:
             flag=1
     return flag
-
+def  getting_the_data(s):
+    result=str(s)
+    user=User.query.filter_by(username=current_user.username).first()
+    if  "Diabetes" in result:
+        data=user.diabete_history
+    elif "Heart_Diesease" in result:
+        data=user.heart_result
+    elif "Kidney_Disease" in result:
+        data=user.kidney
+    elif"Liver_Disease" in result:
+        data=user.liver
+    elif "Asthama" in result:
+        data=user.Asthama
+    data=str(data).replace("None","")
+    return data
+def data_spearator(data):
+    data=str(data)
+    parts = data.split(':')[1:]  # Split from the first ':' to the end
+    result1 = [part.split(';')[0] for part in parts]
+    print(result1)
+    result=[]
+    date=[]
+    percentage=[]
+    for i,item in enumerate(result1):
+        if i%3==0:
+            result.append(item)
+        elif i%3==1:
+            date.append(item)
+        else:
+            percentage.append(item)
+    return result,date,percentage
 
 
 #routes section 
@@ -76,6 +106,11 @@ def Logout():
 @login_required
 def Account():
     user=User.query.filter_by(username=current_user.username).first()
+    diabetes_result,diabete_date,diabetes_percentage=data_spearator(user.diabete_history)
+    heart_result,heart_date,heart_percentage=data_spearator(user.heart_result)
+    Kidney_result,kidney_date,kidney_percentage=data_spearator(user.kidney)
+    liver_result,liver_date,liver_percentage=data_spearator(user.liver)
+    lungs_result,lungs_date,lungs_percentage=data_spearator(user.Asthama)
     return  render_template("account.html",username=user.username,email=user.email,dia_result=user.diabete_history,heart=user.heart_result,Kidney=user.kidney,Liver=user.liver,Lungs=user.Asthama)
 @app.route("/AboutUs")
 def AboutUs():
@@ -168,12 +203,14 @@ def dibetessub():
             y_pred = loaded_model.predict(X_test)
             accuracy = accuracy_score(y_test, y_pred)
             user=User.query.filter_by(username=current_user.username).first()
+            data=getting_the_data("Diabetes")
+            data=str(data)
             if prediction[0][1] >= 0.5:    
-                user.diabete_history="Diabetes:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0][1]*100)+":"
+                user.diabete_history=data+"Diabetes:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction[0][1]*100)+";"
                 db.session.commit()
                 return  render_template("result.html",result=user.diabete_history)
             else:
-                user.diabete_history="Diabetes:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction[0][1]*100)+":"
+                user.diabete_history=data+"Diabetes:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction[0][1]*100)+";"
                 db.session.commit()
                 return  render_template("result.html",result=user.diabete_history)
     except Exception as e:
@@ -220,13 +257,13 @@ def Heartsub():
             user=User.query.filter_by(username=current_user.username).first()
             if prediction==1:
                 try:
-                    user.heart_result="Heart_Diesease:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
+                    user.heart_result="Heart_Diesease:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";"
                     db.session.commit()
                 except Exception as e:
                     print("this is Exception",e)
                 return  render_template("result.html",result=user.diabete_history)
             else:
-                user.heart_result="Heart_Diesease:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
+                user.heart_result="Heart_Diesease:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";"
                 db.session.commit()
                 return  render_template("result.html",result=user.diabete_history)
     except Exception as e:
@@ -275,11 +312,11 @@ def Kidneysub():
             user=User.query.filter_by(username=current_user.username).first()
 
             if prediction>=0.5:
-                user.kidney="Kidney_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
+                user.kidney="Kidney_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";"
                 db.session.commit()
                 return  render_template("result.html",result=user.diabete_history)
             else:
-                user.kidney="Kidney_Disease:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
+                user.kidney="Kidney_Disease:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";"
                 db.session.commit()
                 return  render_template("result.html",result=user.diabete_history)
     except Exception as e:
@@ -324,11 +361,11 @@ def Liversub():
         user=User.query.filter_by(username=current_user.username).first()
         predict=int(prediction)
         if predict==0:
-            user.liver="Liver_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(predict*100)+":"
+            user.liver="Liver_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(predict*100)+";"
             db.session.commit()
             return  render_template("result.html",result=user.diabete_history)
         else:
-            user.liver="Liver_Disease:NO;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(predict*100)+":"
+            user.liver="Liver_Disease:NO;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(predict*100)+";"
             db.session.commit()
             return  render_template("result.html",result=user.diabete_history)
 @app.route('/Lungs')
@@ -361,10 +398,10 @@ def lungssub():
             prediction = loaded_model.predict(input_details)
             user=User.query.filter_by(username=current_user.username).first()
             if prediction >= 0.5:
-                user.lungs="Asthama:Yes;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
+                user.lungs="Asthama:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";"
                 return  render_template("result.html",result=user.diabete_history)
             else:
-                user.lungs="Asthama:No;\n"+"Time:"+str(current_data())+";\n"+"Stage%="+str(prediction*100)+":"
+                user.lungs="Asthama:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+":"
                 return  render_template("result.html",result=user.diabete_history)
         except Exception as e:
             print(e)
