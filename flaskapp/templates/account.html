@@ -1,6 +1,7 @@
 {% extends "layout1.html" %}
 {%block content%}
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
     <title>User Health Profile</title>
     <style>
         body {
@@ -67,7 +68,7 @@
 
     <div id="profile-section">
         <div style="size: 20rem;">
-            <img  id="profile-picture" src="https://static.vecteezy.com/system/resources/thumbnails/010/260/479/small/default-avatar-profile-icon-of-social-media-user-in-clipart-style-vector.jpg" alt="User Profile Picture">
+            <img  id="profile-picture" src="https://static.vecteezy.com/system/resources/thumbnails/010/260/479/small/default-avatar-profile-icon-of-social-meres-user-in-clipart-style-vector.jpg" alt="User Profile Picture">
         </div>
         
         <h2>{{username}}</h2>
@@ -75,61 +76,73 @@
 
         <div id="health-report">
           <h3>Health Details Report</h3>
-          <div class="row" style="gap: 2px;">
+          <ul class="nav nav-tabs">
+            <li class="nav-item">
+              <a class="nav-link {{dia}}" aria-current="page" href="/Account/0">diabetes</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link  {{hea}} " href="/Account/1">heart</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link  {{kid}}" href="/Account/2">Kidney</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link  {{liv}}" href="/Account/3" >Liver</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{lun}} " href="/Account/4">lungs</a>
+              </li>
+          </ul>
+          <canvas id="LineChart" width="400" height="400">
+
+          </canvas>
+          <script>
+              var ctx=document.getElementById("LineChart").getContext("2d");
+              var LineChart=new Chart(ctx,{
+                  type: "line",
+                  data:{
+                      labels: {{ labels|safe }},
+                      datasets: [
+                          {
+                              label: "data points",
+                              data: {{values | safe }},
+                              fill:false,
+                              borderColor: "rgb(75,192,192)",
+                              lineTension:0.1
+                          }
+                      ]
       
-              <!-- Diabetes Report -->
-              <div class="card health-card {{dia_result|lower}}">
-                  <div class="card-body">
-                      <i class="fas fa-heartbeat"></i>
-                      <h5 class="card-title alert alert-warning" role="alert">Diabetes Report</h5>
-                      <p class="card-text">{{dia_result}}</p>
-                      <a href="#" class="btn btn-primary full-report-btn">Full Report</a>
-                  </div>
-              </div>
       
-              <!-- Heart Report -->
-              <div class="card health-card {{dia_result|lower}}">
-                  <div class="card-body">
-                      <i class="fas fa-heartbeat"></i>
-                      <h5 class="card-title alert alert-warning" role="alert">Heart Report</h5>
-                      <p class="card-text">{{heart}}</p>
-                      <a href="#" class="btn btn-primary full-report-btn">Full Report</a>
-                  </div>
-              </div>
+                  },
+                  options:{
+                      responsive: false
+                  }
       
-              <!-- Kidney Report -->
-              <div class="card health-card {{dia_result|lower}}">
-                  <div class="card-body">
-                      <i class="fas fa-heartbeat"></i>
-                      <h5 class="card-title alert alert-warning" role="alert">Kidney Report</h5>
-                      <p class="card-text">{{Kidney}}</p>
-                      <a href="#" class="btn btn-primary full-report-btn">Full Report</a>
-                  </div>
-              </div>
-      
-              <!-- Liver Report -->
-              <div class="card health-card {{dia_result|lower}}">
-                  <div class="card-body">
-                      <i class="fas fa-heartbeat"></i>
-                      <h5 class="card-title alert alert-warning" role="alert">Liver Report</h5>
-                      <p class="card-text">{{Liver}}</p>
-                      <a href="#" class="btn btn-primary full-report-btn">Full Report</a>
-                  </div>
-              </div>
-      
-              <!-- Lungs Report -->
-              <div class="card health-card {{dia_result|lower}}">
-                  <div class="card-body">
-                      <i class="fas fa-heartbeat"></i>
-                      <h5 class="card-title alert alert-warning" role="alert">Lungs Report</h5>
-                      <p class="card-text">{{Lungs}}</p>
-                      <a href="#" class="btn btn-primary full-report-btn">Full Report</a>
-                  </div>
-              </div>
-      
-              <!-- Repeat the above structure for other health reports -->
-      
-          </div>
+              });
+          </script>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Sno</th>
+                <th scope="col">Date</th>
+                <th scope="col">Result</th>
+                <th scope="col">Percentage</th>
+              </tr>
+            </thead>
+            <tbody>
+                {% for index in range(res.date|length) %}
+                <tr>
+                    <td>{{index}}</td>
+                    <td>{{ res.date[index] }}</td>
+                    <td>{{ res.result[index] }}</td>
+                    <td>{{ res.percentage[index] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+          </table>
+          
+        
       </div>
       
 
