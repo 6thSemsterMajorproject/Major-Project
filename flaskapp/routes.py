@@ -36,6 +36,19 @@ def List_replacer(my_list):
             my_list[i]=1
     return my_list
 
+def List_sqaure_bracket_remover(li):
+    print("In the Function")
+    for i in range(len(li)):
+        i=str(i)
+        i=i.replace("[","")
+        i=i.replace("]","")
+    print("This is The List",li)
+    return list
+
+
+
+
+
 def get_diabete_data():
     try:
         data_list=diabete.query.all()
@@ -68,12 +81,14 @@ def  getting_the_data(s):
         data=user.Asthama
     data=str(data).replace("None","")
     return data
+
 #class Section
 class account_data:
     def data_spearator(self,data):
         data=str(data)
         parts = data.split(':')[1:]  # Split from the first ':' to the end
         result1 = [part.split(';')[0] for part in parts]
+        print(result1)
         self.result=[]
         self.date=[]
         self.percentage=[]
@@ -102,44 +117,43 @@ def index():
 def Logout():
     logout_user()
     return render_template("index.html")
-@app.route("/Account")
+@app.route("/Account/<int:id>")
 @login_required
-def Account():
+def Account(id):
     try:
-        user=User.query.filter_by(username=current_user.username).first()
+        user=User.query.filter_by(username=current_user.username).first() 
         obj=account_data()
         obj.data_spearator(user.diabete_history)
+        dia,hea,kid,lun,liv="", "", "", "", "" 
+        if id==0:
+            dia="active"
+            hea,kid,lun,liv="inactive","inactive","inactive","inactive"
+            obj.data_spearator(user.diabete_history)
+        elif id==1:
+            hea="active"
+            dia,kid,lun,liv="inactive","inactive","inactive","inactive"
+            obj.data_spearator(user.heart_result)
+            print("This is Before Function call",obj.percentage)
+            obj.percentage=List_sqaure_bracket_remover(obj.percentage)
+            print(obj.percentage)
+            
+        elif id==2:
+            kid="active"
+            hea,dia,liv,lun="inactive","inactive","inactive","inactive"
+            obj.percentage=List_sqaure_bracket_remover(obj.percentage)
+            obj.data_spearator(user.kidney)
+        elif id==3:
+            liv="active"
+            hea,Kid,dia,lun="inactive","inactive","inactive","inactive"
+            obj.data_spearator(user.liver)
+        elif id==4:
+            lun="active"
+            obj.data_spearator(user.Asthama)
+            hea,Kid,liv,dia="inactive","inactive","inactive","inactive"
+        obj.percentage=[float(ele) for ele in obj.percentage]
     except Exception as e:
         print(e)    
-    return  render_template("account.html",username=user.username,email=user.email,dia=obj)#,graph_path=graph_path)
-@app.route("/account_heart")
-@login_required
-def Account_heart():
-    user=User.query.filter_by(username=current_user.username).first()
-    obj=account_data()
-    obj.data_spearator(user.heart_result)
-    return  render_template("account_heart.html",username=user.username,email=user.email,her=obj)
-@app.route("/account_kidney")
-@login_required
-def Account_Kidney():
-    user=User.query.filter_by(username=current_user.username).first()
-    obj=account_data()
-    obj.data_spearator(user.kidney)
-    return  render_template("account_kidney.html",username=user.username,email=user.email,dia=obj)
-@app.route("/account_liver")
-@login_required
-def Account_Liver():
-    user=User.query.filter_by(username=current_user.username).first()
-    obj=account_data()
-    obj.data_spearator(user.liver)
-    return  render_template("account_liver.html",username=user.username,email=user.email,dia=obj)
-@app.route("/account_lungs")
-@login_required
-def Account_Lungs():
-    user=User.query.filter_by(username=current_user.username).first()
-    obj=account_data()
-    obj.data_spearator(user.Asthama)
-    return  render_template("account_lungs.html",username=user.username,email=user.email,dia=obj)
+    return  render_template("account.html",username=user.username,email=user.email,res=obj,dia=dia,hea=hea,kid=kid,liv=liv,lun=lun,labels=obj.date,values=obj.percentage)
 @app.route("/AboutUs")
 def AboutUs():
     return render_template("about.html")
