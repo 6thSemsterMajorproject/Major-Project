@@ -8,15 +8,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user,logout_user
 import pandas as pd
-import numpy as np
 import joblib
 import bcrypt
 import sqlite3
-import matplotlib.pyplot as plt
 from datetime import datetime
-import random
-from io import BytesIO
-import base64
+
  # function Section 
 def hash_password(password):
     # Generate a salt and hash the password
@@ -36,17 +32,43 @@ def List_replacer(my_list):
             my_list[i]=1
     return my_list
 
-def List_sqaure_bracket_remover(li):
-    print("In the Function")
-    for i in range(len(li)):
-        i=str(i)
-        i=i.replace("[","")
-        i=i.replace("]","")
-    print("This is The List",li)
-    return list
-
-
-
+def listsqreplacer(l):
+    s=''
+    j=0
+    for i in l:
+        if j==(len(l)-1):
+            s+=str(i)
+        else:
+            s+=str(i)+","
+        j+=1
+    return s
+def dbdataadder(s,l):
+    if "liver" in s:
+        f=open("C:\\AIhealthpro\\flaskapp\\my_csv_file\\liver.csv","a")
+        s1=listsqreplacer(l)
+        s1="\n"+str(s1)
+        f.write(s1)
+        f.close()
+    elif "lungs" in s:
+        f=open("C:\\AIhealthpro\\flaskapp\\my_csv_file\\lungs.csv","a")
+        s1=listsqreplacer(l)
+        s1="\n"+str(s1)
+        f.write(s1)
+        f.close()
+    else:
+        try:
+            conn=sqlite3.connect("C:\\AIhealthpro\\instance\\AIhealthpro.db")
+            cursor=conn.cursor()
+            cursor.execute(f"select max(id) from {s}")
+            lastid=cursor.fetchone()[0]
+            lastid+=1
+            l=list(l)
+            l.insert(0,lastid)
+            s1=listsqreplacer(l)
+            cursor.execute(f"insert into {s} values({s1})")
+            conn.commit()
+        except Exception as e:
+            print(e)
 
 
 def get_diabete_data():
@@ -66,6 +88,7 @@ def List_validator(my_list):
         if i<0:
             flag=1
     return flag
+
 def  getting_the_data(s):
     result=str(s)
     user=User.query.filter_by(username=current_user.username).first()
@@ -88,7 +111,6 @@ class account_data:
         data=str(data)
         parts = data.split(':')[1:]  # Split from the first ':' to the end
         result1 = [part.split(';')[0] for part in parts]
-        print(result1)
         self.result=[]
         self.date=[]
         self.percentage=[]
@@ -100,6 +122,7 @@ class account_data:
             else:
                 self.percentage.append(item)
 
+
 #routes section 
 @login_manager.user_loader
 def load_user(user_id):
@@ -108,7 +131,8 @@ def load_user(user_id):
 @app.errorhandler(Exception)
 def handle_error(error):
     exception_name = error.__class__.__name__
-    return "This is Error handler"+str(error)
+    return str(error)
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -121,10 +145,9 @@ def Logout():
 @login_required
 def Account(id):
     try:
-        user=User.query.filter_by(username=current_user.username).first() 
+        user=User.query.filter_by(username=current_user.username).first()
         obj=account_data()
-        obj.data_spearator(user.diabete_history)
-        dia,hea,kid,lun,liv="", "", "", "", "" 
+        dia,hea,kid,lun,liv="", "", "", "", ""
         if id==0:
             dia="active"
             hea,kid,lun,liv="inactive","inactive","inactive","inactive"
@@ -133,14 +156,10 @@ def Account(id):
             hea="active"
             dia,kid,lun,liv="inactive","inactive","inactive","inactive"
             obj.data_spearator(user.heart_result)
-            print("This is Before Function call",obj.percentage)
-            obj.percentage=List_sqaure_bracket_remover(obj.percentage)
-            print(obj.percentage)
             
         elif id==2:
             kid="active"
             hea,dia,liv,lun="inactive","inactive","inactive","inactive"
-            obj.percentage=List_sqaure_bracket_remover(obj.percentage)
             obj.data_spearator(user.kidney)
         elif id==3:
             liv="active"
@@ -150,10 +169,9 @@ def Account(id):
             lun="active"
             obj.data_spearator(user.Asthama)
             hea,Kid,liv,dia="inactive","inactive","inactive","inactive"
-        obj.percentage=[float(ele) for ele in obj.percentage]
     except Exception as e:
         print(e)    
-    return  render_template("account.html",username=user.username,email=user.email,res=obj,dia=dia,hea=hea,kid=kid,liv=liv,lun=lun,labels=obj.date,values=obj.percentage)
+    return  render_template("account.html",username=user.username,email=user.email,res=obj,dia=dia,hea=hea,kid=kid,liv=liv,lun=lun)
 @app.route("/AboutUs")
 def AboutUs():
     return render_template("about.html")
@@ -167,11 +185,8 @@ def loginpage():
 def loginauth(): 
     Username=request.form.get("Uname")
     Password=request.form.get("pword")
-    try:
-        specific_user_name = User.query.filter_by(username=Username).first()
-        specific_user_password=check_password(Password,specific_user_name.password)
-    except Exception as e:
-        print(e)
+    specific_user_name = User.query.filter_by(username=Username).first()
+    specific_user_password=check_password(Password,specific_user_name.password)
     if specific_user_name and specific_user_password:
         login_user(specific_user_name)
         return render_template("home.html")
@@ -184,13 +199,9 @@ def signupauth():
     Password=request.form.get("password")
     Password=hash_password(Password)
     user=User(username=Username,email=Email,password=Password)
-    try:
-        db.session.add(user)
-        db.session.commit()
-    except  Exception  as e:
-        print(e)
-    finally:
-        return render_template("sign_page.html")
+    db.session.add(user)
+    db.session.commit()
+    return render_template("sign_page.html")
 @app.route("/disinx",methods=["GET","POST"])
 def disindx():
     return render_template("disindex.html")
@@ -200,7 +211,6 @@ def diabetes():
 #diabetes Precition is done by RandomForestClassifier
 @app.route("/diabetessub",methods=["GET","POST"])
 def dibetessub():
-    try:
         diabetes_details=[]
         diabetes_details.append((request.form.get("checkbox")))
         diabetes_details.append((request.form.get("checkbox2")))
@@ -217,10 +227,9 @@ def dibetessub():
         diabetes_details.append((request.form.get("checkbox11")))
         diabetes_details.append((request.form.get("checkbox12")))
         diabetes_details=List_replacer(diabetes_details)
-        flag=int(List_validator(diabetes_details) )
+        flag=int(List_validator(diabetes_details))
         if flag==1:
             return "You Have Given an Illegal Value Please Retry"
-            
         else:
             data = get_diabete_data()
             if data:
@@ -246,16 +255,18 @@ def dibetessub():
             user=User.query.filter_by(username=current_user.username).first()
             data=getting_the_data("Diabetes")
             data=str(data)
-            if prediction[0][1] >= 0.5:    
+            if prediction[0][1] >= 0.5:   
+                diabetes_details.append(1) 
+                dbdataadder("diabete",diabetes_details)
                 user.diabete_history=data+"Diabetes:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction[0][1]*100)+";"
                 db.session.commit()
-                return  render_template("result.html",result="Diabetes:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction[0][1]*100)+";")
+                return  render_template("result.html",result="Diabetes:Yes;\n")
             else:
+                diabetes_details.append(0) 
+                dbdataadder("diabete",diabetes_details)
                 user.diabete_history=data+"Diabetes:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction[0][1]*100)+";"
                 db.session.commit()
-                return  render_template("result.html",result="Diabetes:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction[0][1]*100)+";")
-    except Exception as e:
-        print(e)
+                return  render_template("result.html",result="Diabetes:No;\n")
     # Heart Module 
 @app.route("/heart")
 def Heart():
@@ -263,7 +274,6 @@ def Heart():
 # Heart Diesease Predictor Uses LogisticRegression
 @app.route("/heartsub",methods=["GET","POST"])
 def Heartsub():
-    try:    
         Heart_details=[]
         Heart_details.append(int(request.form.get("age")))
         Heart_details.append(request.form.get("checkbox2"))
@@ -288,8 +298,8 @@ def Heartsub():
             # data=db.engine.execute(query)
             X = data.drop('result',axis=1)  # Features
             y = data['result']
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  # The Testing is 20% and training is 80% 
-            model = LogisticRegression(random_state=42)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)  # The Testing is 20% and training is 80% 
+            model = LogisticRegression()
             model.fit(X_train, y_train)
             joblib.dump(model, 'Heart_risk_model.pkl')
             loaded_model = joblib.load('Heart_risk_model.pkl')
@@ -300,72 +310,70 @@ def Heartsub():
             data=str(data)
             if prediction==1:
                 try:
+                    Heart_details.append(1)
+                    dbdataadder("heart",Heart_details)
                     user.heart_result=data+"Heart_Diesease:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";"
                     db.session.commit()
                 except Exception as e:
                     print("this is Exception",e)
                 return  render_template("result.html",result="Heart_Diesease:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";")
             else:
+                Heart_details.append(0)
+                dbdataadder("heart",Heart_details)
                 user.heart_result=data+"Heart_Diesease:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";"
                 db.session.commit()
                 return  render_template("result.html",result="Heart_Diesease:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";")
-    except Exception as e:
-        return str(e)
 @app.route("/Kidney")
 def Kidney():
     return render_template("Kidney.html")
 @app.route("/kidneysub",methods=["GET","POST"])
 def Kidneysub():
-    try:
-        kidney_details=[]
-        kidney_details.append(int(request.form.get("age")))
-        kidney_details.append(request.form.get("checkbox1"))
-        kidney_details.append(request.form.get("checkbox3"))
-        kidney_details.append(request.form.get("checkbox4"))
-        kidney_details.append(request.form.get("checkbox2"))
-        kidney_details.append(request.form.get("checkbox5"))
-        kidney_details.append(request.form.get("checkbox6"))
-        kidney_details.append(request.form.get("checkbox7"))
-        kidney_details.append(request.form.get("checkbox8"))
-        kidney_details.append(request.form.get("checkbox9"))
-        kidney_details=List_replacer(kidney_details)        
-        print(kidney_details)
-        flag=int(List_validator(kidney_details))
-        if flag==1:
-            return "You Have entered illegal argument"
+    kidney_details=[]
+    kidney_details.append(int(request.form.get("age")))
+    kidney_details.append(request.form.get("checkbox1"))
+    kidney_details.append(request.form.get("checkbox3"))
+    kidney_details.append(request.form.get("checkbox4"))
+    kidney_details.append(request.form.get("checkbox2"))
+    kidney_details.append(request.form.get("checkbox5"))
+    kidney_details.append(request.form.get("checkbox6"))
+    kidney_details.append(request.form.get("checkbox7"))
+    kidney_details.append(request.form.get("checkbox8"))
+    kidney_details.append(request.form.get("checkbox9"))
+    kidney_details=List_replacer(kidney_details)
+    flag=int(List_validator(kidney_details))
+    if flag==1:
+        return "You Have entered illegal argument"
+    else:
+        conn=sqlite3.connect("C:\\AIhealthpro\\instance\\AIhealthpro.db")
+        cursor = conn.cursor()
+        cursor.execute('SELECT Age,family_history,physical_excerise,obesity,Hypertension,HeartDieases,smoking,painkiller,alcoholic,diabetes,result FROM kidney')
+        data=cursor.fetchall()
+        conn.close()
+        data=pd.DataFrame(data)
+        X=data.iloc[:,:-1]
+        y=data.iloc[:,-1] 
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,random_state=42)
+        model = RandomForestRegressor(random_state=42)
+        model.fit(X_train,y_train)
+        joblib.dump(model,"Kidney_risk_model.pkl")
+        loaded_model=joblib.load("Kidney_risk_model.pkl")
+        input_data=[kidney_details]
+        prediction=loaded_model.predict(input_data)
+        user=User.query.filter_by(username=current_user.username).first()
+        data=getting_the_data("Kidney_Disease")
+        data=str(data)
+        if prediction>=0.5:
+            kidney_details.append(1)
+            dbdataadder("Kidney",kidney_details)
+            user.kidney=data+"Kidney_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction)+";"
+            db.session.commit()
+            return  render_template("result.html",result="Kidney_Disease:Yes;\n")
         else:
-            conn=sqlite3.connect("C:\\AIhealthpro\\instance\\AIhealthpro.db")
-            cursor = conn.cursor()
-            cursor.execute('SELECT Age,family_history,physical_excerise,obesity,Hypertension,HeartDieases,smoking,painkiller,alcoholic,diabetes,result FROM kidney')
-            data=cursor.fetchall()
-            conn.close()
-            data=pd.DataFrame(data)
-            X=data.iloc[:,:-1] 
-            y=data.iloc[:,-1] 
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-            model = RandomForestRegressor(random_state=42)
-            model.fit(X_train,y_train)
-            joblib.dump(model,"Kidney_risk_model.pkl")
-            loaded_model=joblib.load("Kidney_risk_model.pkl")
-            try:
-                input_data=[kidney_details]
-                prediction=loaded_model.predict(input_data)
-            except Exception as e:
-                print(e)
-            user=User.query.filter_by(username=current_user.username).first()
-            data=getting_the_data("Kidney_Disease")
-            data=str(data)
-            if prediction>=0.5:
-                user.kidney=data+"Kidney_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";"
-                db.session.commit()
-                return  render_template("result.html",result="Kidney_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";")
-            else:
-                user.kidney="Kidney_Disease:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";"
-                db.session.commit()
-                return  render_template("result.html",result="Kidney_Disease:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";")
-    except Exception as e:
-        print(e)
-        return str(e)
+            kidney_details.append(0)
+            dbdataadder("Kidney",kidney_details)
+            user.kidney=data+"Kidney_Disease:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";"
+            db.session.commit()
+            return  render_template("result.html",result="Kidney_Disease:No;\n")
 @app.route("/Liver")
 def Liver():
     return render_template("Liver.html")
@@ -382,44 +390,42 @@ def Liversub():
     Liver_detials.append(request.form.get("checkbox7"))
     Liver_detials.append(request.form.get("checkbox8"))
     Liver_detials=List_replacer(Liver_detials)
-    print(Liver_detials)
     flag=int(List_validator(Liver_detials))
-    print(flag)
     if flag ==1:
         return "You Have entered illegal argument"
     else:
         data=pd.read_csv("C:\\AIhealthpro\\flaskapp\\my_csv_file\\liver.csv")
         X=data.drop('result',axis=1)
         y=data['result']
-        try:
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  # The Testing is 20% and training is 80% 
-            model = DecisionTreeClassifier(random_state=42)
-            model.fit(X_train, y_train)
-            y_pred=model.predict(X_test)
-            accuracy=accuracy_score(y_test,y_pred)
-            joblib.dump(model, 'Liver_risk_model.pkl')
-            loaded_model = joblib.load('Liver_risk_model.pkl')
-            prediction=loaded_model.predict([Liver_detials])
-        except Exception as e:
-            print("This is Exception",e)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)  # The Testing is 20% and training is 80% 
+        model = DecisionTreeClassifier(random_state=42)
+        model.fit(X_train, y_train)
+        y_pred=model.predict(X_test)
+        accuracy=accuracy_score(y_test,y_pred)
+        joblib.dump(model, 'Liver_risk_model.pkl')
+        loaded_model = joblib.load('Liver_risk_model.pkl')
+        prediction=loaded_model.predict([Liver_detials])
         user=User.query.filter_by(username=current_user.username).first()
         predict=int(prediction)
         data=getting_the_data("Liver_Disease")
         data=str(data)
-        if predict==0:
-            user.liver=data+"Liver_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(predict*100)+";"
+        if predict==1:
+            Liver_detials.append(1)
+            dbdataadder("liver",Liver_detials)
+            user.liver=data+"Liver_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(predict)+";"
             db.session.commit()
-            return  render_template("result.html",result="Liver_Disease:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(predict*100)+";")
+            return  render_template("result.html",result="Liver_Disease:Yes;")
         else:
-            user.liver=data+"Liver_Disease:NO;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(predict*100)+";"
+            Liver_detials.append(0)
+            dbdataadder("liver",Liver_detials)
+            user.liver=data+"Liver_Disease:NO;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(predict)+";"
             db.session.commit()
-            return  render_template("result.html",result="Liver_Disease:NO;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(predict*100)+";")
+            return  render_template("result.html",result="Liver_Disease:NO;")
 @app.route('/Lungs')
 def Lungs():
     return render_template('lungs.html')
 @app.route('/lungssub',methods=['GET','POST'])
 def lungssub():
-        try:
             Lungs_details=[]
             Lungs_details.append(int(request.form.get("age")))
             Lungs_details.append(request.form.get("checkbox1"))
@@ -435,7 +441,7 @@ def lungssub():
             data=pd.read_csv("C:\\AIhealthpro\\flaskapp\\my_csv_file\\lungs.csv")
             X=data[['Age','family_history','smoking','allergies','weight','Exercise','Location']]
             y=data['Result']
-            X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=42)
+            X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2)
             model=LinearRegression()
             model.fit(X_train,y_train)
             joblib.dump(model, 'Lungs_risk_model.pkl')
@@ -446,10 +452,14 @@ def lungssub():
             data=getting_the_data("Asthama")
             data=str(data)
             if prediction >= 0.5:
-                user.lungs=data+"Asthama:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";"
-                return  render_template("result.html",result="Asthama:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";")
+                Lungs_details.append(1)
+                dbdataadder("lungs",Lungs_details)
+                user.Asthama=data+"Asthama:Yes;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+";"
+                db.session.commit()
+                return  render_template("result.html",result="Asthama:Yes;\n")
             else:
-                user.lungs=data+"Asthama:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+":"
-                return  render_template("result.html",result="Asthama:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+":")
-        except Exception as e:
-            print(e)
+                Lungs_details.append(0)
+                dbdataadder("lungs",Lungs_details)
+                user.Asthama=data+"Asthama:No;\n"+"Time:"+str(current_data())+";\n"+"stage:"+str(prediction*100)+":"
+                db.session.commit()
+                return  render_template("result.html",result="Asthama:No;\n")
