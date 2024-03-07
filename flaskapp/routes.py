@@ -12,6 +12,8 @@ import joblib
 import bcrypt
 import sqlite3
 from datetime import datetime
+from sqlalchemy.exc import IntegrityError
+
 
  # function Section 
 def hash_password(password):
@@ -128,10 +130,23 @@ class account_data:
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+@app.errorhandler(AttributeError)
+def handle_attribute_error(error):
+    if "password" in str(error):
+        return "<script>alert('User does not exist')</script>"
+    else:
+        return "<script>alert('Enter a Valid  Value')</script>"
+    
+
 @app.errorhandler(Exception)
 def handle_error(error):
-    exception_name = error.__class__.__name__
-    return str(error)
+    print(str(error))
+    if 'UNIQUE constraint failed' in str(error):
+        return "<script>alert('User Already exists')</script>"
+    else:
+        exception_name = error.__class__.__name__
+        return f"<script>alert('{exception_name}')</script>"
+ 
 
 @app.route("/")
 def index():
@@ -186,6 +201,7 @@ def loginauth():
     Username=request.form.get("Uname")
     Password=request.form.get("pword")
     specific_user_name = User.query.filter_by(username=Username).first()
+    specific_user_password="xyz"
     specific_user_password=check_password(Password,specific_user_name.password)
     if specific_user_name and specific_user_password:
         login_user(specific_user_name)
